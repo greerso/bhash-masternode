@@ -112,22 +112,24 @@ TERM=ansi whiptail --infobox "Installing the bhash Masternode..." \
 # What you need.
 TERM=ansi whiptail --msgbox "You will need:
 
--A qt wallet with at least 3001 coins
--A Linux server with a static public ip.
-
-This setup is tested on Ubuntu 16.04 64-bit." \
+-A qt wallet with at least 2000 coins
+-An Ubuntu 16.04 64-bit server with a static public ip." \
 	--backtitle "Installing B-Hash Masternode" \
 	--title "Before you start" \
 	24 78
 
 # Step 1
-TERM=ansi whiptail --msgbox "Start the qt wallet. Go to Settings→Options→Wallet and check “Show Masternodes Tab” then restart the wallet." \
+masternodeprivkey=$(TERM=ansi whiptail --msgbox "Start the qt wallet. Go to Settings→Debug console and enter the following command:
+
+\"createmasternodekey\"
+
+The result will look something like this \"y0uRm4st3rn0depr1vatek3y\".  Enter it here" \
 	--backtitle "Installing B-Hash Masternode" \
 	--title "Step 1" \
-	24 78
+	24 78)
 	
 # Step 2
-masternodealias=$(TERM=ansi whiptail --inputbox "Create a new receiving address. Open menu File→Receiving addressess… Click the add button and enter a name for the address, for example MN1, then enter it here" \
+masternodealias=$(TERM=ansi whiptail --inputbox "Choose an alias for your masternode, for example MN1, then enter it here" \
 	--default-item MN1 \
 	--backtitle "Installing B-Hash Masternode" \
 	--title "Step 2" \
@@ -137,13 +139,15 @@ masternodealias=$(TERM=ansi whiptail --inputbox "Create a new receiving address.
 # note:  --default-item is not working here.  need fix.
 
 # Step 3
-TERM=ansi whiptail --msgbox "Send exactly 3001 coins to this MN1 address.  Verify that \"Subtract fee from amount\" is NOT checked. Wait for 15 confirmations of this transaction.
+TERM=ansi whiptail --msgbox "While still in the Debug console type the following command to get a public address to send the stake to:
 
-Note:  To check the confirmations of the transaction go to Transactions→right Click \"Show Transaction Details\" or Hover over the time clock in the far right of the transaction." \
+\"getaccountaddress $masternodealias\"
+
+The result will look similar to this \"mA7fXSTe23RNoD83Esx6or4uYLxLqunDm5\".  Send exactly 2000 HASH to that address making sure that any tx fee is covered.
+" \
 	--backtitle "Installing B-Hash Masternode" \
 	--title "Step 3" \
 	24 78
-# Or is it 3000 coins?  Need clarification on the extra coin requirement.
 
 # Step 4
 TERM=ansi whiptail --msgbox "Open the debug window via menu Tools→Debug Console." \
@@ -152,23 +156,11 @@ TERM=ansi whiptail --msgbox "Open the debug window via menu Tools→Debug Consol
 	24 78
 	
 # Step 5
-masternodeprivkey=$(TERM=ansi whiptail --inputbox "Open the debug window via menu Tools→Debug Console and execute the command:
+collateral_output_txid=$(TERM=ansi whiptail --inputbox "Back in the Debug console Execute the command:
 
-\"masternode genkey\"
+\"masternode outputs\"
 
-This will output your MN priv key, for example:
-
-\"92PPhvRjKd5vIiBcwbVpq3g4CnKVGUEEGrorZJPYYoohgCu9QkF\".
-
-Paste it here then press OK" \
-	--backtitle "Installing B-Hash Masternode" \
-	--title "Step 4" \
-	--nocancel \
-	3>&1 1>&2 2>&3 \
-	24 78)
-
-# Step 5
-collateral_output_txid=$(TERM=ansi whiptail --inputbox "Execute the command \"masternode outputs\". This will output TX and output pairs of numbers, for example:
+This will output TX and output pairs of numbers, for example:
 \"{
  \"a9b31238d062ccb5f4b1eb6c3041d369cc014f5e6df38d2d303d791acd4302f2\": \"0\"
 }\"
@@ -188,15 +180,29 @@ collateral_output_index=$(TERM=ansi whiptail --inputbox "Paste the second, singl
 	24 78)
 
 # Step 7
-TERM=ansi whiptail --msgbox "Open the masternode.conf file via menu Tools→Open Masternode Configuration File. Without any blank lines type in a space-delimited single line paste the following string:
-$masternodealias $publicip:5567 $masternodeprivkey $collateral_output_txid $collateral_output_index" \
+TERM=ansi whiptail --msgbox "Open the masternode.conf file via the menu Tools→Open Masternode Configuration File. Without any blank lines type in a space-delimited single line paste the following string:
+
+\"$masternodealias $publicip:17652 $masternodeprivkey $collateral_output_txid $collateral_output_index\"
+
+Save and close the file." \
 	--backtitle "Installing B-Hash Masternode" \
 	--title "Step 7" \
 	24 78
 	
 # Step 8
-TERM=ansi whiptail --msgbox "Restart the wallet and go to the “Masternodes” tab. There in the tab “My Masternodes” you should see the entry of your masternode with the status \"MISSING\"." \
-	--backtitle "Installing B-Hash Masternode" \
+TERM=ansi whiptail --msgbox "Open the bash.conf file via the menu Tools→Open Wallet Configuration File and paste the following text:
+
+rpcuser=$rpcuser
+rpcpassword=$rpcpassword
+rpcallowip=127.0.0.1
+listen=0
+server=1
+daemon=1
+logtimestamps=1
+maxconnections=256
+masternode=1
+
+Save and close the file." \
 	--title "Step 8" \
 	24 78
 # ---------------------------------------------------------------------------------------
@@ -213,7 +219,7 @@ bhashFilename=$(basename $bhashURL)
 bhashOS=linux \
 stfu curl -sSL "$bhashURL" | tar xvz -C /usr/local/bin/
 # ---------------------------------------------------------------------------------------
-https://github.com/bhashcoin/bhash/blob/master/doc/masternode_conf.md
+
 # =======================================================================================
 TERM=ansi whiptail --infobox "Creating configs in $bhashwallet..." \
 	--backtitle "Installing B-Hash Masternode" \
@@ -238,7 +244,6 @@ TERM=ansi whiptail --infobox "Creating the B-Hash configuration..." \
 	8 78
 # =======================================================================================
 cat <<EOF > $bhashwallet/bhash.conf
-cat <<EOF > /mnt/bhash/config/bhash.conf
 rpcuser=$rpcuser
 rpcpassword=$rpcpassword
 rpcallowip=127.0.0.1
@@ -323,6 +328,14 @@ stfu systemctl daemon-reload
 stfu systemctl enable bhashd
 stfu systemctl restart bhashd
 # ---------------------------------------------------------------------------------------
+
+
+TERM=ansi whiptail --msgbox "Restart the wallet.  You should see your Masternode listed in the Masternodes tab.  If you get errors, you may have made a mistake in either the bhash.conf or masternodes.conf files.  Use the buttons to start your alias.  It may take up to 24 hours for your masternode to fully propagate" \
+	--backtitle "Installing B-Hash Masternode" \
+	--title "Restart qt Wallet" \
+	24 78
+
+
 
 # =======================================================================================
 # Display logo
