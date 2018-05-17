@@ -1,5 +1,12 @@
 #!/bin/bash
-
+# Author: Greerso https://github.com/greerso
+# Steemit:  https://steemit.com/@greerso
+#
+# BTC 1BzrkEMSF4aXBtZ19DhVf8KMPVkXjXaAPG
+# ETH 0x0f64257fAA9E5E36428E5BbB44C9A2aE3A055577
+# LTC LRf2oaNjLH18UtfXnr6GG34c3xv6To2XeZ
+# ZEC t1QCnCQstdgvZ5v3P9sZbeT9ViJd2pDfNBL
+# ZEN zndLiWRo7cYeAKuPArtpQ6HNPi6ZdaTmLFL
 # =======================================================================================
 # Setup alias and helper functions
 # =======================================================================================
@@ -366,5 +373,15 @@ cat << EOF
    ,,,,,,,,,,,,,,,********************/        
   .,,,,,,,,,,,,,,,,,,****************          
   .,,,,,,,,,,,,,/,,,,,,,**********             
+
+Useful commands:
+'bhash-cli masternode status'	#Get the status of your masternode
+'bhash-cli --help'				#Get a list of things that bhash-cli can do
+'sudo systemctl stop bhashd'	#Stop the B-Hash Daemon
+'sudo systemctl start bhashd'	#Start the B-Hash Daemon
+'sudo systemctl restart bhashd' #Restart the B-Hash Daemon
+'sudo systemctl status bhashd'	#Get the status B-Hash Daemon
+
+For a beginners quick start for linux see https://steemit.com/tutorial/@greerso/linux-cli-command-line-interface-primer-for-beginners
 EOF
 # ---------------------------------------------------------------------------------------
