@@ -222,8 +222,10 @@ TERM=ansi whiptail --infobox "Installing binaries to /usr/local/bin..." \
 # =======================================================================================
 bhashOS=linux
 bhashURL=$(curl -s https://api.github.com/repos/bhashcoin/bhash/releases/latest | jq -r ".assets[] | select(.name | test(\"${bhashOS}\")) | .browser_download_url")
-bhashFilename=$(basename $bhashURL)
 curl -sSL "$bhashURL" | tar xvz -C /usr/local/bin/
+echo $bhashOS
+echo $bhashURL
+sleep 5
 # ---------------------------------------------------------------------------------------
 
 # =======================================================================================
@@ -272,7 +274,6 @@ EOF
 # Fix wallet permissions...
 # =======================================================================================
 stfu chown -R $bhashuser $bhashwallet
-stfu chmod 0760 $bhashwallet/*
 # ---------------------------------------------------------------------------------------
 
 # =======================================================================================
@@ -344,9 +345,6 @@ Use the buttons to start your alias.  It may take up to 24 hours for your master
 	--backtitle "Installing B-Hash Masternode" \
 	--title "Restart qt Wallet" \
 	24 78
-
-
-
 # =======================================================================================
 # Display logo
 # =======================================================================================
