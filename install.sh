@@ -222,7 +222,7 @@ TERM=ansi whiptail --infobox "Installing binaries to /usr/local/bin..." \
 # =======================================================================================
 bhashOS=linux
 bhashURL=$(curl -s https://api.github.com/repos/bhashcoin/bhash/releases/latest | jq -r ".assets[] | select(.name | test(\"${bhashOS}\")) | .browser_download_url")
-curl -sSL "$bhashURL" | tar xvz -C /usr/local/bin/
+stfu curl -sSL "$bhashURL" | tar xvz -C /usr/local/bin/
 # ---------------------------------------------------------------------------------------
 
 # =======================================================================================
