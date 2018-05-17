@@ -99,7 +99,7 @@ internalip="$(hostname -I)"
 Hostname="$(cat /etc/hostname)"
 sshPort=$(cat /etc/ssh/sshd_config | grep Port | awk '{print $2}')
 bhashuser=$(who -m | awk '{print $1;}')
-bhashwallet=$HOME/.bhashcore
+bhashwallet=$HOME/.bhash
 sshPort=$(cat /etc/ssh/sshd_config | grep Port | awk '{print $2}')
 # ---------------------------------------------------------------------------------------
 
@@ -119,7 +119,8 @@ TERM=ansi whiptail --msgbox "You will need:
 	24 78
 
 # Step 1
-masternodeprivkey=$(TERM=ansi whiptail --msgbox "Start the qt wallet. Go to Settings→Debug console and enter the following command:
+masternodeprivkey=$(TERM=ansi whiptail --msgbox \
+"Start the qt wallet. Go to Settings→Debug console and enter the following command:
 
 \"createmasternodekey\"
 
@@ -129,7 +130,8 @@ The result will look something like this \"y0uRm4st3rn0depr1vatek3y\".  Enter it
 	24 78)
 	
 # Step 2
-masternodealias=$(TERM=ansi whiptail --inputbox "Choose an alias for your masternode, for example MN1, then enter it here" \
+masternodealias=$(TERM=ansi whiptail --inputbox \
+"Choose an alias for your masternode, for example MN1, then enter it here" \
 	--default-item MN1 \
 	--backtitle "Installing B-Hash Masternode" \
 	--title "Step 2" \
@@ -139,7 +141,8 @@ masternodealias=$(TERM=ansi whiptail --inputbox "Choose an alias for your master
 # note:  --default-item is not working here.  need fix.
 
 # Step 3
-TERM=ansi whiptail --msgbox "While still in the Debug console type the following command to get a public address to send the stake to:
+TERM=ansi whiptail --msgbox \
+"While still in the Debug console type the following command to get a public address to send the stake to:
 
 \"getaccountaddress $masternodealias\"
 
@@ -150,12 +153,6 @@ The result will look similar to this \"mA7fXSTe23RNoD83Esx6or4uYLxLqunDm5\".  Se
 	24 78
 
 # Step 4
-TERM=ansi whiptail --msgbox "Open the debug window via menu Tools→Debug Console." \
-	--backtitle "Installing B-Hash Masternode" \
-	--title "Step 4" \
-	24 78
-	
-# Step 5
 collateral_output_txid=$(TERM=ansi whiptail --inputbox "Back in the Debug console Execute the command:
 
 \"masternode outputs\"
@@ -166,30 +163,30 @@ This will output TX and output pairs of numbers, for example:
 }\"
 Paste just the first number, long number, here and the second number in the next screen." \
 	--backtitle "Installing B-Hash Masternode" \
+	--title "Step 4" \
+	--nocancel \
+	3>&1 1>&2 2>&3 \
+	24 78)
+
+# Step 5
+collateral_output_index=$(TERM=ansi whiptail --inputbox "Paste the second, single digit number from the previous step (usually \"0\" here." \
+	--backtitle "Installing B-Hash Masternode" \
 	--title "Step 5" \
 	--nocancel \
 	3>&1 1>&2 2>&3 \
 	24 78)
 
 # Step 6
-collateral_output_index=$(TERM=ansi whiptail --inputbox "Paste the second, single digit number from the previous step (usually \"0\" here." \
-	--backtitle "Installing B-Hash Masternode" \
-	--title "Step 6" \
-	--nocancel \
-	3>&1 1>&2 2>&3 \
-	24 78)
-
-# Step 7
 TERM=ansi whiptail --msgbox "Open the masternode.conf file via the menu Tools→Open Masternode Configuration File. Without any blank lines type in a space-delimited single line paste the following string:
 
-\"$masternodealias $publicip:17652 $masternodeprivkey $collateral_output_txid $collateral_output_index\"
+$masternodealias $publicip:17652 $masternodeprivkey $collateral_output_txid $collateral_output_index
 
 Save and close the file." \
 	--backtitle "Installing B-Hash Masternode" \
-	--title "Step 7" \
+	--title "Step 6" \
 	24 78
 	
-# Step 8
+# Step 7
 TERM=ansi whiptail --msgbox "Open the bash.conf file via the menu Tools→Open Wallet Configuration File and paste the following text:
 
 rpcuser=$rpcuser
@@ -203,7 +200,7 @@ maxconnections=256
 masternode=1
 
 Save and close the file." \
-	--title "Step 8" \
+	--title "Step 7" \
 	24 78
 # ---------------------------------------------------------------------------------------
 
@@ -216,7 +213,6 @@ TERM=ansi whiptail --infobox "Installing binaries to /usr/local/bin..." \
 bhashOS=linux
 bhashURL=$(curl -s https://api.github.com/repos/bhashcoin/bhash/releases/latest | jq -r ".assets[] | select(.name | test(\"${bhashOS}\")) | .browser_download_url")
 bhashFilename=$(basename $bhashURL)
-bhashOS=linux \
 stfu curl -sSL "$bhashURL" | tar xvz -C /usr/local/bin/
 # ---------------------------------------------------------------------------------------
 
@@ -330,7 +326,11 @@ stfu systemctl restart bhashd
 # ---------------------------------------------------------------------------------------
 
 
-TERM=ansi whiptail --msgbox "Restart the wallet.  You should see your Masternode listed in the Masternodes tab.  If you get errors, you may have made a mistake in either the bhash.conf or masternodes.conf files.  Use the buttons to start your alias.  It may take up to 24 hours for your masternode to fully propagate" \
+TERM=ansi whiptail --msgbox "Restart the wallet.  You should see your Masternode listed in the Masternodes tab.
+
+If you get errors, you may have made a mistake in either the bhash.conf or masternodes.conf files.
+
+Use the buttons to start your alias.  It may take up to 24 hours for your masternode to fully propagate" \
 	--backtitle "Installing B-Hash Masternode" \
 	--title "Restart qt Wallet" \
 	24 78
@@ -340,6 +340,7 @@ TERM=ansi whiptail --msgbox "Restart the wallet.  You should see your Masternode
 # =======================================================================================
 # Display logo
 # =======================================================================================
+clear
 cat << EOF                                               
           *////////////*                       
          ///////////////                       
