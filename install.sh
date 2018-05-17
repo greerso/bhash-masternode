@@ -7,6 +7,7 @@
 # LTC LRf2oaNjLH18UtfXnr6GG34c3xv6To2XeZ
 # ZEC t1QCnCQstdgvZ5v3P9sZbeT9ViJd2pDfNBL
 # ZEN zndLiWRo7cYeAKuPArtpQ6HNPi6ZdaTmLFL
+# ZEL t1RdEHDboaRwpoBVQDuQ9bEpBmFqU1dFBR6
 # =======================================================================================
 # Setup alias and helper functions
 # =======================================================================================
