@@ -100,7 +100,7 @@ stfu aptitude -yq3 install \
 # =======================================================================================
 rpcuser="bhashuser"
 rpcpassword="$(head -c 32 /dev/urandom | base64)"
-rpcport="5567"
+rpcport="17652"
 bhashuserpw="$(head -c 32 /dev/urandom | base64)"
 publicip="$(dig +short myip.opendns.com @resolver1.opendns.com)"
 internalip="$(hostname -I)"
@@ -189,7 +189,7 @@ collateral_output_index=$(TERM=ansi whiptail --inputbox "Paste the second, singl
 # Step 6
 TERM=ansi whiptail --msgbox "Open the masternode.conf file via the menu Tools→Open Masternode Configuration File. Without any blank lines type in a space-delimited single line paste the following string:
 
-$masternodealias $publicip:17652 $masternodeprivkey $collateral_output_txid $collateral_output_index
+$masternodealias $publicip:$rpcport $masternodeprivkey $collateral_output_txid $collateral_output_index
 
 Save and close the file." \
 	--backtitle "Installing B-Hash Masternode" \
@@ -260,7 +260,7 @@ logtimestamps=1
 maxconnections=256
 masternode=1
 externalip=$publicip
-bind=$publicip:17652
+bind=$publicip:$rpcport
 masternodeaddr=$publicip
 masternodeprivkey=$masternodeprivkey
 mnconf=$bhashwallet/masternode.conf
@@ -317,7 +317,7 @@ EOF
 # =======================================================================================
 # Firewall port
 # =======================================================================================
-ufw allow 17652/tcp comment 'bhash daemon'
+ufw allow $rpcport/tcp comment 'bhash daemon'
 ufw allow $sshPort/tcp comment 'ssh port'
 ufw --force enable
 # ---------------------------------------------------------------------------------------
