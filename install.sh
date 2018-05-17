@@ -134,6 +134,8 @@ masternodeprivkey=$(TERM=ansi whiptail --inputbox \
 The result will look something like this \"y0uRm4st3rn0depr1vatek3y\".  Enter it here" \
 	--backtitle "Installing B-Hash Masternode" \
 	--title "Step 1" \
+	--nocancel \
+	3>&1 1>&2 2>&3 \
 	24 78)
 	
 # Step 2
