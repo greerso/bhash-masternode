@@ -119,7 +119,7 @@ TERM=ansi whiptail --msgbox "You will need:
 	24 78
 
 # Step 1
-masternodeprivkey=$(TERM=ansi whiptail --msgbox \
+masternodeprivkey=$(TERM=ansi whiptail --inputbox \
 "Start the qt wallet. Go to Settings→Debug console and enter the following command:
 
 \"createmasternodekey\"
