@@ -9,7 +9,7 @@
 # ZEN zndLiWRo7cYeAKuPArtpQ6HNPi6ZdaTmLFL
 # ZEL t1RdEHDboaRwpoBVQDuQ9bEpBmFqU1dFBR6
 # =======================================================================================
-# Setup alias and helper functions
+# Setup helper functions
 # =======================================================================================
 export NEWT_COLORS=''
 
@@ -38,6 +38,32 @@ inputWithDefault() {
 user_in_group() {
     groups $1 | grep -q "\b$2\b"
 }
+
+infobox() {
+	TERM=ansi whiptail \
+	--infobox "$@" \
+	--backtitle "$wt_backtitle" \
+	--title "$wt_title" \
+	$wt_size
+}
+
+msgbox() {
+	TERM=ansi whiptail \
+	--msgbox "$@" \
+	--backtitle "$wt_backtitle" \
+	--title "$wt_title" \
+	$wt_size
+}
+
+inputbox() {
+	TERM=ansi whiptail \
+	--inputbox "$@" \
+	--backtitle "$wt_backtitle" \
+	--title "$wt_title" \
+	--nocancel \
+	3>&1 1>&2 2>&3 \
+	$wt_size
+}
 # ---------------------------------------------------------------------------------------
 
 # =======================================================================================
@@ -50,49 +76,34 @@ fi
 # ---------------------------------------------------------------------------------------
 
 # =======================================================================================
-# 'Switch to Aptitude...'
+# 'Required Packages...'
 # =======================================================================================
-stfu apt update
-stfu apt-get -y install aptitude
-# ---------------------------------------------------------------------------------------
-
-# =======================================================================================
-TERM=ansi whiptail --infobox "Installing packages required for setup..." \
-	--backtitle "Installing B-Hash Masternode" \
-	--title "Installing dependencies..." \
-	8 78
-# =======================================================================================
-stfu aptitude -yq3 update
-stfu aptitude -yq3 full-upgrade
-stfu aptitude -yq3 install \
+declare -a basepackages=(\
 	apt-transport-https \
 	ca-certificates \
 	curl \
+	dialog \
 	htop \
 	fail2ban \
 	jq \
-	libboost-system-dev \
-	libboost-filesystem-dev \
-	libboost-chrono-dev \
-	libboost-program-options-dev \
-	libboost-test-dev \
-	libboost-thread-dev \
-	libzmq3-dev \
-	libminiupnpc-dev \
 	libevent-dev \
 	lsb-release \
 	software-properties-common \
 	unattended-upgrades \
 	unzip \
 	ufw \
-	wget
-
-# Add bitcoin repo
-stfu add-apt-repository -y ppa:bitcoin/bitcoin
-stfu apt update
-stfu aptitude -yq3 install \
-	libdb4.8-dev \
-	libdb4.8++-dev
+	wget)
+declare -a projectpackages=(\
+	libboost-system-dev \
+	libboost-filesystem-dev \
+	libboost-chrono-dev \
+	libboost-program-options-dev \
+	libboost-test-dev \
+	libboost-thread-dev \
+	libdb-dev \
+	libdb++-dev
+	libzmq3-dev \
+	libminiupnpc-dev)
 # ---------------------------------------------------------------------------------------
 
 # =======================================================================================
@@ -112,42 +123,54 @@ sshPort=$(cat /etc/ssh/sshd_config | grep Port | awk '{print $2}')
 # ---------------------------------------------------------------------------------------
 
 # =======================================================================================
-TERM=ansi whiptail --infobox "Installing the bhash Masternode..." \
-	--backtitle "Installing B-Hash Masternode" \
-	--title "Installing the B-Hash Masternode..." \
-	8 78
+wt_title="Installing dependencies..."
+infobox "$installing"
 # =======================================================================================
-# What you need.
-TERM=ansi whiptail --msgbox "You will need:
+stfu apt update
+stfu apt-get -y install aptitude
+aptitude -yq3 update
+aptitude -yq3 full-upgrade
+aptitude -yq3 install ${basepackages[@]}
+aptitude -yq3 install ${projectpackages[@]}
 
--A qt wallet with at least 2000 coins
--An Ubuntu 16.04 64-bit server with a static public ip." \
-	--backtitle "Installing B-Hash Masternode" \
-	--title "Before you start" \
-	24 78
+# Add bitcoin repo
+# stfu add-apt-repository -y ppa:bitcoin/bitcoin
+# stfu apt update
+# stfu aptitude -yq3 install \
+#	libdb4.8-dev \
+#	libdb4.8++-dev
+# ---------------------------------------------------------------------------------------
 
-# Step 1
-masternodeprivkey=$(TERM=ansi whiptail --inputbox \
-"Start the qt wallet. Go to Settings→Debug console and enter the following command:
+# =======================================================================================
+# Setup dialogs
+# =======================================================================================
+installing="Installing packages required for setup..."
+step0="You will need:
 
-\"createmasternodekey\"
+	-A qt wallet with at least 2000 coins
+	-An Ubuntu 16.04 64-bit server with a static public ip."
+step1="Start the qt wallet. Go to Settings→Debug console and enter the following command:
 
-The result will look something like this \"y0uRm4st3rn0depr1vatek3y\".  Enter it here" \
-	--backtitle "Installing B-Hash Masternode" \
-	--title "Step 1" \
-	--nocancel \
-	3>&1 1>&2 2>&3 \
-	24 78)
+	\"createmasternodekey\"
+
+	The result will look something like this \"y0uRm4st3rn0depr1vatek3y\".  Enter it here"
+step2="Choose an alias for your masternode, for example MN1, then enter it here"
+step3""
+step4""
+step5""
+step6""
+wt_backtitle="Installing B-Hash Masternode"
+wt_size="8 78"
+# ---------------------------------------------------------------------------------------
+
+# =======================================================================================
+wt_title="Installing the B-Hash Masternode..."
+msgbox "$step0"
+# =======================================================================================
+masternodeprivkey=$(inputbox $step1)
 	
 # Step 2
-masternodealias=$(TERM=ansi whiptail --inputbox \
-"Choose an alias for your masternode, for example MN1, then enter it here" \
-	--default-item MN1 \
-	--backtitle "Installing B-Hash Masternode" \
-	--title "Step 2" \
-	--nocancel \
-	3>&1 1>&2 2>&3 \
-	24 78)
+masternodealias=$(inputbox $step2)
 # note:  --default-item is not working here.  need fix.
 
 # Step 3
