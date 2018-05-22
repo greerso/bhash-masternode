@@ -566,7 +566,7 @@ aptitude -yq3 full-upgrade
 aptitude -yq3 install ${BASE_PKGS[@]}
 aptitude -yq3 install ${PROJECT_PKGS[@]}
 
-# Add bitcoin repo
+# Add bitcoin repo. *why?
 # stfu add-apt-repository -y ppa:bitcoin/bitcoin
 # stfu apt update
 # stfu aptitude -yq3 install \
