@@ -120,10 +120,10 @@ change_hostname() {
 }
 
 create_swap() {
-	totalmem=$(free -m | awk '/^Mem:/{print $2}')
-	totalswp=$(free -m | awk '/^Swap:/{print $2}')
-	totalm=$(($totalmem + $totalswp))
-	if [ $totalm -lt 4000 ]; then
+	TOTAL_MEM=$(free -m | awk '/^Mem:/{print $2}')
+	TOTAL_SWP=$(free -m | awk '/^Swap:/{print $2}')
+	TOTAL_M=$(($TOTAL_MEM + $TOTAL_SWP))
+	if [ $TOTAL_M -lt 4000 ]; then
 		if ! grep -q '/swapfile' /etc/fstab ; then
 			fallocate -l 4G /swapfile
 			chmod 600 /swapfile
@@ -143,6 +143,7 @@ create_user() {
 	usermod -a -G sudo "$USERNAME"
 	# add option to ask instead of adding to sudoers by default
 	# add a loop to add more users
+	
 }
 
 unattended-upgrades() {
@@ -161,6 +162,35 @@ unattended-upgrades() {
 	else
 	    echo "APT::Periodic::Unattended-Upgrade \"1\" ;" >> /etc/apt/apt.conf.d/10periodic
 	fi
+}
+
+harden_ssh() {
+	# Set ssh port
+	SSH_PORT=$(cat /etc/ssh/sshd_config | grep Port | awk '{print $2}')
+	if [ $SSH_PORT -eq 22 ] ; then
+		NEW_SSH_PORT=$(inputbox "SSH is currently running on $NEW_SSH_PORT.  Botnets scan are constantly scanning this port.  Enter a new port or press enter to accept port 2222" )
+	fi
+	if grep -q Port /etc/ssh/sshd_config; then
+	    sed -ri "s|(^(.{0,2})Port)( *)?(.*)|Port $NEW_SSH_PORT|1" /etc/ssh/sshd_config
+	else
+	    echo "Port $NEW_SSH_PORT" >> /etc/ssh/sshd_config
+	fi
+	# Disable root user ssh login
+	# Make sure that you have a normal user before doing this
+	if grep -q PermitRootLogin /etc/ssh/sshd_config; then
+	    sed -ri "s|(^(.{0,2})PermitRootLogin)( *)?(.*)|PermitRootLogin no|1" /etc/ssh/sshd_config
+	else
+	    echo "PermitRootLogin no" >> /etc/ssh/sshd_config
+	fi
+	# Disable the use of passwords with ssh
+	# Add ssh-key for remote user to LINUX_USER .ssh/allowed_keys
+	if grep -q PasswordAuthentication /etc/ssh/sshd_config; then
+	    sed -ri "s|(^(.{0,2})PasswordAuthentication)( *)?(.*)|PasswordAuthentication no|1" /etc/ssh/sshd_config
+	else
+	    echo "PasswordAuthentication no" >> /etc/ssh/sshd_config
+	fi
+	# Restart the ssh daemon
+	systemctl restart sshd
 }
 
 setup_ufw() {
@@ -218,6 +248,10 @@ setup_fail2ban() {
 	fi
 	
 	sed -i -e 's|ignoreip = 127.0.0.1/8|ignoreip = $REMOTE_IP|g' /etc/fail2ban/jail.local
+	# jail.local:
+	# [sshd]
+	# action = %(action_)s
+	         # smtp.py[host="host:25", user="my-account", password="my-pwd", sender="sender@example.com", dest="example@example.com", name="%(__name__)s"]
 	# sed -i -e 's|destemail = root@localhost|destemail = me@myemail.com |g' /etc/fail2ban/jail.local
 	# sed -i -e 's|sender = root@localhost|sender = fail2ban@$FQDN\nsendername = Fail2Ban|g' /etc/fail2ban/jail.local
 	# sed -i -e 's|mta = sendmail|mta = mail|g' /etc/fail2ban/jail.local
@@ -503,7 +537,6 @@ declare -a BASE_PKGS=(\
 	libevent-dev \
 	lsb-release \
 	software-properties-common \
-	unattended-upgrades \
 	unzip \
 	wget)
 declare -a OPT_PKGS=(\
