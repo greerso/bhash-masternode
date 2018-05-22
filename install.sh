@@ -17,7 +17,7 @@
 	PROJECT_NAME="bhash"
 	GITHUB_REPO="bhashcoin/bhash"
 #
-RPCUSER="$PROJECT_NAME_user"
+RPCUSER="${PROJECT_NAME}_user"
 RPCPASSWORD="$(head -c 32 /dev/urandom | base64)"
 RPC_PORT="17654"
 P2P_PORT="17652"
@@ -32,7 +32,7 @@ DAEMON_BINARY="${PROJECT_NAME}d"
 PROJECT_CLI="${PROJECT_NAME}-cli"
 PROJECT_LOGO="          *////////////*                       \n         ///////////////                       \n         *//////////////                       \n         ****//////////                        \n        ********///////                        \n        ***********///*                        \n       /**************////////*,               \n       *******************/////////,           \n       **********************/////////         \n       *************************///////*       \n      ,*************@@@@***%@@@%***//////      \n      *************/@@@&***@@@@/******////     \n      *********@@@@@@@@@@@@@@@@@@@*******//    \n     **********@@@@@@@@@@@@@@@@@@@*********,   \n     *************/@@@@***&@@@**************   \n     *************&@@@#***@@@@*************,   \n    ,**********@@@@@@@@@@@@@@@@@@&*********/   \n    ,,********/@@@@@@@@@@@@@@@@@@**********    \n    ,,,,,********#@@@/***@@@@*************/    \n   ,,,,,,,,*****@@@@***(@@@@************(     \n   ,,,,,,,,,,,**************************       \n   ,,,,,,,,,,,,,,,********************/        \n  .,,,,,,,,,,,,,,,,,,****************          \n  .,,,,,,,,,,,,,/,,,,,,,**********             "
 LOCAL_WALLET_CONF="rpcpassword=$RPCUSER\nrpcpassword=$RPCPASSWORD\nrpcallowip=127.0.0.1\nlisten=0\nserver=1\ndaemon=1\nlogtimestamps=1\nmaxconnections=256\nmasternode=1"
-${PROJECT_NAME}_OS=linux
+declare ${PROJECT_NAME}_OS=linux
 WT_BACKTITLE="$PROJECT_NAME Masternode Installer"
 declare WT_TITLE
 declare WT_SIZE
