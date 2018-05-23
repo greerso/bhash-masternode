@@ -15,7 +15,8 @@
 # ==============================================================================
 # Project Specific
 	PROJECT_NAME="bhash"
-	GITHUB_REPO="bhashcoin/bhash"
+	PROJECT_GITHUB_REPO="bhashcoin/bhash"
+	PROJECT_STAKE=2000
 #
 RPCUSER="${PROJECT_NAME}_user"
 RPCPASSWORD="$(head -c 32 /dev/urandom | base64)"
@@ -34,8 +35,7 @@ PROJECT_LOGO="          *////////////*                       \n         ////////
 LOCAL_WALLET_CONF="rpcpassword=$RPCUSER\nrpcpassword=$RPCPASSWORD\nrpcallowip=127.0.0.1\nlisten=0\nserver=1\ndaemon=1\nlogtimestamps=1\nmaxconnections=256\nmasternode=1"
 declare ${PROJECT_NAME}_OS=linux
 WT_BACKTITLE="$PROJECT_NAME Masternode Installer"
-declare WT_TITLE
-declare WT_SIZE
+WT_TITLE="Installing the $PROJECT_NAME Masternode..."
 # ------------------------------------------------------------------------------
 
 # ==============================================================================
@@ -579,11 +579,8 @@ installing="Installing packages required for setup..."
 # ------------------------------------------------------------------------------
 
 # ==============================================================================
-WT_BACKTITLE="$PROJECT_NAME Masternode Installer"
-WT_SIZE="24 78"
-WT_TITLE="Installing the $PROJECT_NAME Masternode..."
 # ==============================================================================
-step0="You will need:\n\n-A qt wallet with at least 2000 coins\n-An Ubuntu 16.04 64-bit server with a static public ip."
+step0="You will need:\n\n-A qt wallet with at least $PROJECT_STAKE coins\n-An Ubuntu 16.04 64-bit server with a static public ip."
 msgbox "$step0"
 
 step1="Start the qt wallet. Go to Settings?Debug console and enter the following command:\n\n\"createmasternodekey\"\n\nThe result will look something like this \"y0uRm4st3rn0depr1vatek3y\".  Enter it here"
@@ -593,7 +590,7 @@ step2="Choose an alias for your masternode, for example MN1, then enter it here"
 MN_ALIAS=$(inputbox $step2)
 	# note:  --default-item is not working here.  need fix.
 
-step3"While still in the Debug console type the following command to get a public address to send the stake to:\n\n\"getaccountaddress $MN_ALIAS\"\n\nThe result will look similar to this \"mA7fXSTe23RNoD83Esx6or4uYLxLqunDm5\".  Send exactly 2000 HASH to that address making sure that any tx fee is covered."
+step3"While still in the Debug console type the following command to get a public address to send the stake to:\n\n\"getaccountaddress $MN_ALIAS\"\n\nThe result will look similar to this \"mA7fXSTe23RNoD83Esx6or4uYLxLqunDm5\".  Send exactly $PROJECT_STAKE HASH to that address making sure that any tx fee is covered."
 msgbox $step3
 
 step4="Back in the Debug console Execute the command:\n\n\"masternode outputs\"\n\nThis will output TX and output pairs of numbers, for example:\n\"{\n\"a9b31238d062ccb5f4b1eb6c3041d369cc014f5e6df38d2d303d791acd4302f2\": \"0\"\n}\"\nPaste just the first number, long number, here and the second number in the next screen."
@@ -611,7 +608,7 @@ msgbox $step7
 
 step8="Installing binaries to /usr/local/bin..."
 msgbox $step8
-	${PROJECT_NAME}_URL=$(curl -s https://api.github.com/repos/${GITHUB_REPO}/releases/latest | jq -r ".assets[] | select(.name | test(\"${PROJECT_NAME}_OS\")) | .browser_download_url")
+	${PROJECT_NAME}_URL=$(curl -s https://api.github.com/repos/${PROJECT_GITHUB_REPO}/releases/latest | jq -r ".assets[] | select(.name | test(\"${PROJECT_NAME}_OS\")) | .browser_download_url")
 
 	curl -sSL "${PROJECT_NAME}_URL" | tar xvz -C /usr/local/bin/
 	sleep .5
