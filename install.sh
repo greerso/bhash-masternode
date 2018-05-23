@@ -18,6 +18,7 @@
 	PROJECT_GITHUB_REPO="bhashcoin/bhash"
 	PROJECT_STAKE=2000
 #
+export NEWT_COLORS=''
 RPCUSER="${PROJECT_NAME}_user"
 RPCPASSWORD="$(head -c 32 /dev/urandom | base64)"
 RPC_PORT="17654"
@@ -33,15 +34,44 @@ DAEMON_BINARY="${PROJECT_NAME}d"
 PROJECT_CLI="${PROJECT_NAME}-cli"
 PROJECT_LOGO="          *////////////*                       \n         ///////////////                       \n         *//////////////                       \n         ****//////////                        \n        ********///////                        \n        ***********///*                        \n       /**************////////*,               \n       *******************/////////,           \n       **********************/////////         \n       *************************///////*       \n      ,*************@@@@***%@@@%***//////      \n      *************/@@@&***@@@@/******////     \n      *********@@@@@@@@@@@@@@@@@@@*******//    \n     **********@@@@@@@@@@@@@@@@@@@*********,   \n     *************/@@@@***&@@@**************   \n     *************&@@@#***@@@@*************,   \n    ,**********@@@@@@@@@@@@@@@@@@&*********/   \n    ,,********/@@@@@@@@@@@@@@@@@@**********    \n    ,,,,,********#@@@/***@@@@*************/    \n   ,,,,,,,,*****@@@@***(@@@@************(     \n   ,,,,,,,,,,,**************************       \n   ,,,,,,,,,,,,,,,********************/        \n  .,,,,,,,,,,,,,,,,,,****************          \n  .,,,,,,,,,,,,,/,,,,,,,**********             "
 LOCAL_WALLET_CONF="rpcpassword=$RPCUSER\nrpcpassword=$RPCPASSWORD\nrpcallowip=127.0.0.1\nlisten=0\nserver=1\ndaemon=1\nlogtimestamps=1\nmaxconnections=256\nmasternode=1"
+SERVER_WALLET_CONF="RPCUSER=$RPCUSER\nRPCPASSWORD=$RPCPASSWORD\nrpcallowip=127.0.0.1\nlisten=1\nserver=1\ndaemon=1\nlogtimestamps=1\nmaxconnections=256\nmasternode=1\nexternalip=$PUBLIC_IP\nbind=$PUBLIC_IP:$P2P_PORT\nmasternodeaddr=$PUBLIC_IP\nmasternodeprivkey=$MN_PRIV_KEY\nmnconf=$WALLET_LOCATION/masternode.conf\ndatadir=$WALLET_LOCATION"
 declare ${PROJECT_NAME}_OS=linux
 WT_BACKTITLE="$PROJECT_NAME Masternode Installer"
 WT_TITLE="Installing the $PROJECT_NAME Masternode..."
+declare MN_ALIAS
+declare MN_PRIV_KEY
+declare COLLATERAL_OUTPUT_TXID
+declare COLLATERAL_OUTPUT_INDEX
+MASTERNODE_CONF="$MN_ALIAS $PUBLIC_IP:$P2P_PORT $MN_PRIV_KEY $COLLATERAL_OUTPUT_TXID $COLLATERAL_OUTPUT_INDEX"
+LOCAL_WALLET_CONF="rpcuser=$RPCUSER\nrpcpassword=$RPCPASSWORD\nrpcallowip=127.0.0.1\nlisten=0\nserver=1\ndaemon=1\nlogtimestamps=1\nmaxconnections=256"
+DAEMON_SERVICE="[Unit]\nDescription=$PROJECT_NAME daemon\nAfter=network.target\n\n[Service]\nExecStart=/usr/local/bin/$DAEMON_BINARY --daemon --conf=$WALLET_LOCATION/$PROJECT_NAME.conf -pid=/run/$DAEMON_BINARY/$DAEMON_BINARY.pid\nRuntimeDirectory=$DAEMON_BINARY\nUser=$LINUX_USER\nType=forking\nWorkingDirectory=$WALLET_LOCATION\nPIDFile=/run/$DAEMON_BINARY/$DAEMON_BINARY.pid\nRestart=on-failure\n\nPrivateTmp=true\nProtectSystem=full\nNoNewPrivileges=true\nPrivateDevices=true\nMemoryDenyWriteExecute=true\n\n[Install]\nWantedBy=multi-user.target"
+declare -a BASE_PKGS=(\
+	apt-transport-https \
+	ca-certificates \
+	curl \
+	htop \
+	jq \
+	libevent-dev \
+	lsb-release \
+	software-properties-common \
+	unzip \
+	wget)
+declare -a PROJECT_PKGS=(\
+	libboost-system-dev \
+	libboost-filesystem-dev \
+	libboost-chrono-dev \
+	libboost-program-options-dev \
+	libboost-test-dev \
+	libboost-thread-dev \
+	libdb-dev \
+	libdb++-dev
+	libzmq3-dev \
+	libminiupnpc-dev)
 # ------------------------------------------------------------------------------
 
 # ==============================================================================
-# Setup helper functions
+# Functions
 # ==============================================================================
-export NEWT_COLORS=''
 
 # Silence
 # Use 'stfu command args...'
@@ -74,12 +104,13 @@ infobox() {
 }
 
 msgbox() {
-	WT_HEIGHT=$(echo -e "$@" | wc -l)
+	WT_MESSAGE=$1
+	WT_HEIGHT=$(echo -e $WT_MESSAGE | wc -l)
 	(( WT_HEIGHT=WT_HEIGHT+6 ))
 	WT_WIDTH=78
 	WT_SIZE="$WT_HEIGHT $WT_WIDTH"
 	TERM=ansi whiptail \
-	--msgbox "$@" \
+	--msgbox $WT_MESSAGE \
 	--backtitle "$WT_BACKTITLE" \
 	--title "$WT_TITLE" \
 	$WT_SIZE
@@ -148,14 +179,15 @@ create_swap() {
 
 create_user() {
 	USERNAME=$(inputbox "Please enter the new user name")
-	USER_PASSWORD=$(inputbox "Please enter the password for '${username}'")
+	USER_PASSWORD=$(inputbox "Please enter a password for \'${USERNAME}\'")
 	adduser --gecos "" --disabled-password --quiet "$USERNAME"
 	echo "$USERNAME:$USER_PASSWORD" | chpasswd
 	# Add user to sudoers
 	usermod -a -G sudo "$USERNAME"
+	LINUX_USER=$USERNAME
+	WALLET_LOCATION="$(eval echo "~$USERNAME")/.${PROJECT_NAME}"
 	# add option to ask instead of adding to sudoers by default
-	# add a loop to add more users
-	
+	# add a loop to add more users	
 }
 
 unattended-upgrades() {
@@ -507,42 +539,40 @@ echo "nospoof on" >> /etc/host.conf
 fi
 }
 
+# download_binaries PROJECT_NAME PROJECT_GITHUB_REPO
+download_binaries() {
+	PROJECT_NAME=$1
+	PROJECT_GITHUB_REPO=$2
+	${PROJECT_NAME}_URL=$(curl -s https://api.github.com/repos/${PROJECT_GITHUB_REPO}/releases/latest | jq -r ".assets[] | select(.name | test(\"${PROJECT_NAME}_OS\")) | .browser_download_url")
+	curl -sSL "${PROJECT_NAME}_URL" | tar xvz -C /usr/local/bin/
+
+}
+
+wallet_configs() {
+	mkdir -p $WALLET_LOCATION
+	cat <<EOF > $WALLET_LOCATION/masternode.conf
+	$MASTERNODE_CONF
+	EOF
+	SERVER_WALLET_CONF=$(echo -e $SERVER_WALLET_CONF)
+	cat <<EOF > $WALLET_LOCATION/$PROJECT_NAME.conf
+	EOF
+	stfu chown -R $LINUX_USER $WALLET_LOCATION
+}
+
+daemon_service() {
+	cat <<EOF > /etc/systemd/system/$DAEMON_BINARY.service
+	$DAEMON_SERVICE
+	EOF
+	systemctl daemon-reload
+	systemctl enable $DAEMON_BINARY
+	systemctl restart $DAEMON_BINARY
+}
 # ------------------------------------------------------------------------------
 
 # ==============================================================================
 # Pre-checks
 # ==============================================================================
 pre_checks
-# ------------------------------------------------------------------------------
-
-# ==============================================================================
-# 'Required Packages...'
-# ==============================================================================
-declare -a BASE_PKGS=(\
-	apt-transport-https \
-	ca-certificates \
-	curl \
-	htop \
-	jq \
-	libevent-dev \
-	lsb-release \
-	software-properties-common \
-	unzip \
-	wget)
-declare -a OPT_PKGS=(\
-	fail2ban \
-	ufw)
-declare -a PROJECT_PKGS=(\
-	libboost-system-dev \
-	libboost-filesystem-dev \
-	libboost-chrono-dev \
-	libboost-program-options-dev \
-	libboost-test-dev \
-	libboost-thread-dev \
-	libdb-dev \
-	libdb++-dev
-	libzmq3-dev \
-	libminiupnpc-dev)
 # ------------------------------------------------------------------------------
 
 # ==============================================================================
@@ -575,126 +605,41 @@ stfu aptitude -yq3 install ${PROJECT_PKGS[@]}
 # ==============================================================================
 # Setup dialogs
 # ==============================================================================
-installing="Installing packages required for setup..."
+INSTALL_STEPS[installing]="Installing packages required for setup..."
+INSTALL_STEPS[step0]="You will need:\n\n-A qt wallet with at least $PROJECT_STAKE coins\n-An Ubuntu 16.04 64-bit server with a static public ip."
+INSTALL_STEPS[step1]="Start the qt wallet. Go to Settings?Debug console and enter the following command:\n\n\"createmasternodekey\"\n\nThe result will look something like this \"y0uRm4st3rn0depr1vatek3y\".  Enter it here"
+INSTALL_STEPS[step2]="Choose an alias for your masternode, for example MN1, then enter it here"
+INSTALL_STEPS[step3]="While still in the Debug console type the following command to get a public address to send the stake to:\n\n\"getaccountaddress $MN_ALIAS\"\n\nThe result will look similar to this \"mA7fXSTe23RNoD83Esx6or4uYLxLqunDm5\".  Send exactly $PROJECT_STAKE HASH to that address making sure that any tx fee is covered."
+INSTALL_STEPS[step4]="Back in the Debug console Execute the command:\n\n\"masternode outputs\"\n\nThis will output TX and output pairs of numbers, for example:\n\"{\n\"a9b31238d062ccb5f4b1eb6c3041d369cc014f5e6df38d2d303d791acd4302f2\": \"0\"\n}\"\nEnter just the first number, long number, here and the second number in the next screen."
+INSTALL_STEPS[step5]="Enter the second, single digit number from the previous step (usually \"0\" here."
+INSTALL_STEPS[step6]="Open the masternode.conf file via the menu Tools->Open Masternode Configuration File. Without any blank lines type in a space-delimited single line paste the following string:\n\n${MASTERNODE_CONF}\n\nSave and close the file."
+INSTALL_STEPS[step7]="Open the bash.conf file via the menu Tools->Open Wallet Configuration File and paste the following text:\n\n${LOCAL_WALLET_CONF}\n\nSave and close the file."
+INSTALL_STEPS[step8]="Installing binaries to /usr/local/bin..."
+INSTALL_STEPS[step9]="Creating configs in $WALLET_LOCATION..."
+INSTALL_STEPS[step10]="Creating and installing the $PROJECT_NAME systemd service..."
+INSTALL_STEPS[step11]="Restart the wallet.  You should see your Masternode listed in the Masternodes tab.\n\nIf you get errors, you may have made a mistake in either the $PROJECT_NAME.conf or masternodes.conf files.\n\nUse the buttons to start your alias.  It may take up to 24 hours for your masternode to fully propagate"
+
 # ------------------------------------------------------------------------------
 
 # ==============================================================================
+# Install Steps
 # ==============================================================================
-step0="You will need:\n\n-A qt wallet with at least $PROJECT_STAKE coins\n-An Ubuntu 16.04 64-bit server with a static public ip."
-msgbox "$step0"
-
-step1="Start the qt wallet. Go to Settings?Debug console and enter the following command:\n\n\"createmasternodekey\"\n\nThe result will look something like this \"y0uRm4st3rn0depr1vatek3y\".  Enter it here"
+msgbox $step0
 MN_PRIV_KEY=$(inputbox $step1)
-
-step2="Choose an alias for your masternode, for example MN1, then enter it here"
 MN_ALIAS=$(inputbox $step2)
 	# note:  --default-item is not working here.  need fix.
-
-step3"While still in the Debug console type the following command to get a public address to send the stake to:\n\n\"getaccountaddress $MN_ALIAS\"\n\nThe result will look similar to this \"mA7fXSTe23RNoD83Esx6or4uYLxLqunDm5\".  Send exactly $PROJECT_STAKE HASH to that address making sure that any tx fee is covered."
 msgbox $step3
-
-step4="Back in the Debug console Execute the command:\n\n\"masternode outputs\"\n\nThis will output TX and output pairs of numbers, for example:\n\"{\n\"a9b31238d062ccb5f4b1eb6c3041d369cc014f5e6df38d2d303d791acd4302f2\": \"0\"\n}\"\nPaste just the first number, long number, here and the second number in the next screen."
 COLLATERAL_OUTPUT_TXID=$(inputbox $step4)
-
-step5="Paste the second, single digit number from the previous step (usually \"0\" here."
 COLLATERAL_OUTPUT_INDEX=$(inputbox $step5)
-	MASTERNODE_CONF="$MN_ALIAS $PUBLIC_IP:$P2P_PORT $MN_PRIV_KEY $COLLATERAL_OUTPUT_TXID $COLLATERAL_OUTPUT_INDEX"
-
-step6="Open the masternode.conf file via the menu Tools?Open Masternode Configuration File. Without any blank lines type in a space-delimited single line paste the following string:\n\n${MASTERNODE_CONF}\n\nSave and close the file."
 msgbox $step6
-
-step7="Open the bash.conf file via the menu Tools?Open Wallet Configuration File and paste the following text:\n\n${LOCAL_WALLET_CONF}\n\nSave and close the file."
 msgbox $step7
-
-step8="Installing binaries to /usr/local/bin..."
 msgbox $step8
-	${PROJECT_NAME}_URL=$(curl -s https://api.github.com/repos/${PROJECT_GITHUB_REPO}/releases/latest | jq -r ".assets[] | select(.name | test(\"${PROJECT_NAME}_OS\")) | .browser_download_url")
-
-	curl -sSL "${PROJECT_NAME}_URL" | tar xvz -C /usr/local/bin/
-	sleep .5
-
-step9="Creating configs in $WALLET_LOCATION..."
+	download_binaries $PROJECT_NAME $PROJECT_GITHUB_REPO
 infobox $step9
-	mkdir -p $WALLET_LOCATION
-	cat <<EOF > $WALLET_LOCATION/masternode.conf
-	$MASTERNODE_CONF
-	EOF
-
-step10="Creating the bhash configuration..."
+	wallet_configs
 infobox $step10
-	LOCAL_WALLET_CONF=$(echo -e $LOCAL_WALLET_CONF)
-	cat <<EOF > $WALLET_LOCATION/$PROJECT_NAME.conf
-	RPCUSER=$RPCUSER
-	RPCPASSWORD=$RPCPASSWORD
-	rpcallowip=127.0.0.1
-	listen=1
-	server=1
-	daemon=1
-	logtimestamps=1
-	maxconnections=256
-	masternode=1
-	externalip=$PUBLIC_IP
-	bind=$PUBLIC_IP:$P2P_PORT
-	masternodeaddr=$PUBLIC_IP
-	masternodeprivkey=$MN_PRIV_KEY
-	mnconf=$WALLET_LOCATION/masternode.conf
-	datadir=$WALLET_LOCATION
-	EOF
-	stfu chown -R $LINUX_USER $WALLET_LOCATION
-
-step11="Installing the $PROJECT_NAME service..."
-infobox $step11
-# ==============================================================================
-	cat <<EOF > /etc/systemd/system/$DAEMON_BINARY.service
-	[Unit]
-	Description=$PROJECT_NAME daemon
-	After=network.target
-	
-	[Service]
-	ExecStart=/usr/local/bin/$DAEMON_BINARY --daemon --conf=$WALLET_LOCATION/$PROJECT_NAME.conf -pid=/run/$DAEMON_BINARY/$DAEMON_BINARY.pid
-	RuntimeDirectory=$DAEMON_BINARY
-	User=$LINUX_USER
-	Type=forking
-	WorkingDirectory=$WALLET_LOCATION
-	PIDFile=/run/$DAEMON_BINARY/$DAEMON_BINARY.pid
-	Restart=on-failure
-	
-	# Hardening measures
-	####################
-	# Provide a private /tmp and /var/tmp.
-	PrivateTmp=true
-	# Mount /usr, /boot/ and /etc read-only for the process.
-	ProtectSystem=full
-	# Disallow the process and all of its children to gain
-	# new privileges through execve().
-	NoNewPrivileges=true
-	# Use a new /dev namespace only populated with API pseudo devices
-	# such as /dev/null, /dev/zero and /dev/random.
-	PrivateDevices=true
-	# Deny the creation of writable and executable memory mappings.
-	MemoryDenyWriteExecute=true
-	
-	[Install]
-	WantedBy=multi-user.target
-	EOF
-# ------------------------------------------------------------------------------
-
-
-
-# ==============================================================================
-infobox "Enabling and starting $PROJECT_NAME service..."
-# ==============================================================================
-stfu systemctl daemon-reload
-stfu systemctl enable $DAEMON_BINARY
-stfu systemctl restart $DAEMON_BINARY
-# ------------------------------------------------------------------------------
-
-
-msgbox "Restart the wallet.  You should see your Masternode listed in the Masternodes tab.
-
-If you get errors, you may have made a mistake in either the $PROJECT_NAME.conf or masternodes.conf files.
-
-Use the buttons to start your alias.  It may take up to 24 hours for your masternode to fully propagate"
+	daemon_service
+msgbox $step11
 # ==============================================================================
 # Display logo
 # ==============================================================================
@@ -706,32 +651,29 @@ echo -e "$PROJECT_LOGO\n\nUseful commands:\n'$PROJECT_CLI masternode status'   #
 # Install Steps
 # ==============================================================================
 #Base Server Options
-	Set Hostname
-	Create Swap for low ram vps
-	Add non-root user
-	Automatic security updates
-	Install and configure UFW Firewall
-		Allow all outbound traffic
-		Deny all inbound traffic
-		Allow inbound P2P for Masternode and SSH
-		Whitelist installer ip address
-	Install and configure Fail2Ban IDS
-		Email reports of hacking activity
-		Autoblock repeat offenders from public blacklist
-	Harden SSH security
-		Change port 22
-		Disable root logon
-		Require ssk-keys
-#Masternode install
-	Check for already installed
-		Check daemon update
-			install update
-#	Simple Q&A process
-	Secure install (no root user)
-	Prompts with instructions
-	Automatic generation of secure RPC passwords
-			
-
+#	Set Hostname
+#	Create Swap for low ram vps
+#	Add non-root user
+#	Automatic security updates
+#	Install and configure UFW Firewall
+#		Allow all outbound traffic
+#		Deny all inbound traffic
+#		Allow inbound P2P for Masternode and SSH
+#		Whitelist installer ip address
+#	Install and configure Fail2Ban IDS
+#		Email reports of hacking activity
+#		Autoblock repeat offenders from public blacklist
+#	Harden SSH security
+#		Change port 22
+#		Disable root logon
+#		Require ssh-keys
+##Masternode install
+#	Check for already installed
+#		Check daemon update
+#			install update
+##	Simple Q&A process
+#	Secure install (no root user)
+#	Prompts with instructions
+#	Automatic generation of secure RPC passwords
+#
 # ------------------------------------------------------------------------------
-
-
