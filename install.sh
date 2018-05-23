@@ -62,6 +62,10 @@ user_in_group() {
 }
 
 infobox() {
+	WT_HEIGHT=$(echo -e "$@" | wc -l)
+	(( WT_HEIGHT=WT_HEIGHT+6 ))
+	WT_WIDTH=78
+	WT_SIZE="$WT_HEIGHT $WT_WIDTH"
 	TERM=ansi whiptail \
 	--infobox "$@" \
 	--backtitle "$WT_BACKTITLE" \
@@ -70,6 +74,10 @@ infobox() {
 }
 
 msgbox() {
+	WT_HEIGHT=$(echo -e "$@" | wc -l)
+	(( WT_HEIGHT=WT_HEIGHT+6 ))
+	WT_WIDTH=78
+	WT_SIZE="$WT_HEIGHT $WT_WIDTH"
 	TERM=ansi whiptail \
 	--msgbox "$@" \
 	--backtitle "$WT_BACKTITLE" \
@@ -78,6 +86,10 @@ msgbox() {
 }
 
 inputbox() {
+	WT_HEIGHT=$(echo -e "$@" | wc -l)
+	(( WT_HEIGHT=WT_HEIGHT+6 ))
+	WT_WIDTH=78
+	WT_SIZE="$WT_HEIGHT $WT_WIDTH"
 	TERM=ansi whiptail \
 	--inputbox "$@" \
 	--backtitle "$WT_BACKTITLE" \
@@ -218,281 +230,281 @@ setup_ufw() {
 }
 
 setup_fail2ban() {
-	REMOTE_IP=$(echo -e $SSH_CLIENT | awk '{ print $1}')
-	FQDN="$(hostname -f)"
-	SSH_PORT=$(cat /etc/ssh/sshd_config | grep Port | awk '{print $2}')
-	JAIL_LOCAL="[blacklist]\nenabled = true\nlogpath  = /var/log/fail2ban.*\nbanaction = blacklist\nbantime  = 31536000   \; 1 year\nfindtime = 31536000   \; 1 year\nmaxretry = 10\n\n[Definition]\nloglevel = INFO\nlogtarget = /var/log/fail2ban.log\nsyslogsocket = auto\nsocket = /var/run/fail2ban/fail2ban.sock\npidfile = /var/run/fail2ban/fail2ban.pid\ndbfile = /var/lib/fail2ban/fail2ban.sqlite3\ndbpurgeage = 86400"
-	JAIL_LOCAL=$(echo -e $JAIL_LOCAL)
+REMOTE_IP=$(echo -e $SSH_CLIENT | awk '{ print $1}')
+FQDN="$(hostname -f)"
+SSH_PORT=$(cat /etc/ssh/sshd_config | grep Port | awk '{print $2}')
+JAIL_LOCAL="[blacklist]\nenabled = true\nlogpath  = /var/log/fail2ban.*\nbanaction = blacklist\nbantime  = 31536000   \; 1 year\nfindtime = 31536000   \; 1 year\nmaxretry = 10\n\n[Definition]\nloglevel = INFO\nlogtarget = /var/log/fail2ban.log\nsyslogsocket = auto\nsocket = /var/run/fail2ban/fail2ban.sock\npidfile = /var/run/fail2ban/fail2ban.pid\ndbfile = /var/lib/fail2ban/fail2ban.sqlite3\ndbpurgeage = 86400"
+JAIL_LOCAL=$(echo -e $JAIL_LOCAL)
 
 if [ ! -f /etc/fail2ban/jail.local ]; then
-	apt -y install fail2ban
-	cat <<EOF > /etc/fail2ban/jail.local
-	$JAIL_LOCAL
-	EOF
+apt -y install fail2ban
+cat <<EOF > /etc/fail2ban/jail.local
+$JAIL_LOCAL
+EOF
 fi
-	
-	sed -i -e 's|ignoreip = 127.0.0.1/8|ignoreip = $REMOTE_IP|g' /etc/fail2ban/jail.local
-	# jail.local:
-	# [sshd]
-	# action = %(action_)s
-	# smtp.py[host="host:25", user="my-account", password="my-pwd", sender="sender@example.com", dest="example@example.com", name="%(__name__)s"]
-	# sed -i -e 's|destemail = root@localhost|destemail = me@myemail.com |g' /etc/fail2ban/jail.local
-	# sed -i -e 's|sender = root@localhost|sender = fail2ban@$FQDN\nsendername = Fail2Ban|g' /etc/fail2ban/jail.local
-	# sed -i -e 's|mta = sendmail|mta = mail|g' /etc/fail2ban/jail.local
-	sed -i -e 's|action = %(action_)s|action = %(action_mwl)s|g' /etc/fail2ban/jail.local
-	sed -i -e 's|= ssh|= $SSH_PORT|g' /etc/fail2ban/jail.local
-	
-	#create an action for repeat offenders from mitchellkrogza/Fail2Ban-Blacklist
-	
-	cat <<EOF >> /etc/fail2ban/action.d/blacklist.conf
-	# /etc/fail2ban/action.d/blacklist.conf
-	# Fail2Ban Blacklist for Repeat Offenders (action.d)
-	# Version: 1.0
-	# GitHub: https://github.com/mitchellkrogza/Fail2Ban-Blacklist-JAIL-for-Repeat-Offenders-with-Perma-Extended-Banning
-	# Tested On: Fail2Ban 0.91
-	# Server: Ubuntu 16.04
-	# Firewall: IPTables
-	#
-	
-	[INCLUDES]
-	before = iptables-common.conf
-	
-	
-	[Definition]
-	# Option:  actionstart
-	# Notes.:  command executed once at the start of Fail2Ban.
-	# Values:  CMD
-	#
-	
-	actionstart = <iptables> -N f2b-<name>
-	              <iptables> -A f2b-<name> -j <returntype>
-	              <iptables> -I <chain> -p <protocol> -j f2b-<name>
-	              # Sort and Check for Duplicate IPs in our text file and Remove Them
-	              sort -u /etc/fail2ban/ip.blacklist -o /etc/fail2ban/ip.blacklist
-	              # Persistent banning of IPs reading from our ip.blacklist text file
-	              # and adding them to IPTables on our jail startup command
-	              cat /etc/fail2ban/ip.blacklist | while read IP; do iptables -I f2b-<name> 1 -s $IP -j DROP; done
-	
-	# Option:  actionstop
-	# Notes.:  command executed once at the end of Fail2Ban
-	# Values:  CMD
-	#
-	
-	actionstop = <iptables> -D <chain> -p <protocol> -j f2b-<name>
-	             <iptables> -F f2b-<name>
-	             <iptables> -X f2b-<name>
-	
-	# Option:  actioncheck
-	# Notes.:  command executed once before each actionban command
-	# Values:  CMD
-	#
-	
-	actioncheck = <iptables> -n -L <chain> | grep -q 'f2b-<name>[ \t]'
-	
-	# Option:  actionban
-	# Notes.:  command executed when banning an IP. Take care that the
-	#          command is executed with Fail2Ban user rights.
-	# Tags:    See jail.conf(5) man page
-	# Values:  CMD
-	#
-	
-	actionban = <iptables> -I f2b-<name> 1 -s <ip> -j DROP
-	# Add the new IP ban to our ip.blacklist file
-	echo '<ip>' >> /etc/fail2ban/ip.blacklist
-	
-	# Option:  actionunban
-	# Notes.:  command executed when unbanning an IP. Take care that the
-	#          command is executed with Fail2Ban user rights.
-	# Tags:    See jail.conf(5) man page
-	# Values:  CMD
-	#
-	actionunban = <iptables> -D f2b-<name> -s <ip> -j DROP
-	# Remove IP from our ip.blacklist file
-	sed -i -e '/<ip>/d' /etc/fail2ban/ip.blacklist
-	
-	[Init]
-	EOF
+
+sed -i -e 's|ignoreip = 127.0.0.1/8|ignoreip = $REMOTE_IP|g' /etc/fail2ban/jail.local
+# jail.local:
+# [sshd]
+# action = %(action_)s
+# smtp.py[host="host:25", user="my-account", password="my-pwd", sender="sender@example.com", dest="example@example.com", name="%(__name__)s"]
+# sed -i -e 's|destemail = root@localhost|destemail = me@myemail.com |g' /etc/fail2ban/jail.local
+# sed -i -e 's|sender = root@localhost|sender = fail2ban@$FQDN\nsendername = Fail2Ban|g' /etc/fail2ban/jail.local
+# sed -i -e 's|mta = sendmail|mta = mail|g' /etc/fail2ban/jail.local
+sed -i -e 's|action = %(action_)s|action = %(action_mwl)s|g' /etc/fail2ban/jail.local
+sed -i -e 's|= ssh|= $SSH_PORT|g' /etc/fail2ban/jail.local
+
+#create an action for repeat offenders from mitchellkrogza/Fail2Ban-Blacklist
+
+cat <<EOF >> /etc/fail2ban/action.d/blacklist.conf
+# /etc/fail2ban/action.d/blacklist.conf
+# Fail2Ban Blacklist for Repeat Offenders (action.d)
+# Version: 1.0
+# GitHub: https://github.com/mitchellkrogza/Fail2Ban-Blacklist-JAIL-for-Repeat-Offenders-with-Perma-Extended-Banning
+# Tested On: Fail2Ban 0.91
+# Server: Ubuntu 16.04
+# Firewall: IPTables
+#
+
+[INCLUDES]
+before = iptables-common.conf
+
+
+[Definition]
+# Option:  actionstart
+# Notes.:  command executed once at the start of Fail2Ban.
+# Values:  CMD
+#
+
+actionstart = <iptables> -N f2b-<name>
+              <iptables> -A f2b-<name> -j <returntype>
+              <iptables> -I <chain> -p <protocol> -j f2b-<name>
+              # Sort and Check for Duplicate IPs in our text file and Remove Them
+              sort -u /etc/fail2ban/ip.blacklist -o /etc/fail2ban/ip.blacklist
+              # Persistent banning of IPs reading from our ip.blacklist text file
+              # and adding them to IPTables on our jail startup command
+              cat /etc/fail2ban/ip.blacklist | while read IP; do iptables -I f2b-<name> 1 -s $IP -j DROP; done
+
+# Option:  actionstop
+# Notes.:  command executed once at the end of Fail2Ban
+# Values:  CMD
+#
+
+actionstop = <iptables> -D <chain> -p <protocol> -j f2b-<name>
+             <iptables> -F f2b-<name>
+             <iptables> -X f2b-<name>
+
+# Option:  actioncheck
+# Notes.:  command executed once before each actionban command
+# Values:  CMD
+#
+
+actioncheck = <iptables> -n -L <chain> | grep -q 'f2b-<name>[ \t]'
+
+# Option:  actionban
+# Notes.:  command executed when banning an IP. Take care that the
+#          command is executed with Fail2Ban user rights.
+# Tags:    See jail.conf(5) man page
+# Values:  CMD
+#
+
+actionban = <iptables> -I f2b-<name> 1 -s <ip> -j DROP
+# Add the new IP ban to our ip.blacklist file
+echo '<ip>' >> /etc/fail2ban/ip.blacklist
+
+# Option:  actionunban
+# Notes.:  command executed when unbanning an IP. Take care that the
+#          command is executed with Fail2Ban user rights.
+# Tags:    See jail.conf(5) man page
+# Values:  CMD
+#
+actionunban = <iptables> -D f2b-<name> -s <ip> -j DROP
+# Remove IP from our ip.blacklist file
+sed -i -e '/<ip>/d' /etc/fail2ban/ip.blacklist
+
+[Init]
+EOF
 
 cat <<EOF >> /etc/fail2ban/filter.d/blacklist.conf
-	# /etc/fail2ban/filter.d/blacklist.conf
-	# Fail2Ban Blacklist for Repeat Offenders (filter.d)
-	#
-	# Version: 1.0
-	# GitHub: https://github.com/mitchellkrogza/Fail2Ban-Blacklist-JAIL-for-Repeat-Offenders-with-Perma-Extended-Banning
-	# Tested On: Fail2Ban 0.91
-	# Server: Ubuntu 16.04
-	# Firewall: IPTables
-	#
-	
-	[INCLUDES]
-	
-	# Read common prefixes. If any customizations available -- read them from
-	# common.local
-	before = common.conf
-	
-	[Definition]
-	
-	_daemon = fail2ban\.actions\s*
-	
-	# The name of the jail that this filter is used for. In jail.conf, name the 
-	# jail using this filter 'blacklist', or change this line!
-	_jailname = blacklist
-	
-	failregex = ^(%(__prefix_line)s| %(_daemon)s%(__pid_re)s?:\s+)NOTICE\s+\[(?!%(_jailname)s\])(?:.*)\]\s+Ban\s+<HOST>\s*$
-	
-	ignoreregex = 
-	
-	[Init]
-	
-	journalmatch = _SYSTEMD_UNIT=fail2ban.service PRIORITY=5
-	EOF
-	
-	systemctl restart fail2ban
-	
-	#
-	# Secure shared memory
-	#
-	
-	cat <<EOF >> /etc/fstab
-	
-	tmpfs /run/shm tmpfs defaults,noexec,nosuid 0 0
-	EOF
-	
-	# Harden the networking layer
-	
-	# Prevent source routing of incoming packets
-	# enable Spoof protection
-	if grep -q net.ipv4.conf.default.rp_filter /etc/sysctl.conf; then
-	sed -ri "s|(^(.{0,2})net.ipv4.conf.default.rp_filter)( *)?(.*)|net.ipv4.conf.default.rp_filter = 1|1" /etc/sysctl.conf
-	else
-	echo "net.ipv4.conf.default.rp_filter=1" >> /etc/sysctl.conf
-	fi
-	
-	if grep -q net.ipv4.conf.all.rp_filter /etc/sysctl.conf; then
-	sed -ri "s|(^(.{0,2})net.ipv4.conf.all.rp_filter)( *)?(.*)|net.ipv4.conf.all.rp_filter=1|1" /etc/sysctl.conf
-	else
-	echo "net.ipv4.conf.all.rp_filter=1" >> /etc/sysctl.conf
-	fi
-	
-	# enable TCP/IP SYN cookies
-	if grep -q net.ipv4.tcp_syncookies /etc/sysctl.conf; then
-	sed -ri "s|(^(.{0,2})net.ipv4.tcp_syncookies)( *)?(.*)|net.ipv4.tcp_syncookies=1|1" /etc/sysctl.conf
-	else
-	echo "net.ipv4.tcp_syncookies=1" >> /etc/sysctl.conf
-	fi
-	
-	# Ignore ICMP broadcat requests
-	if grep -q net.ipv4.icmp_echo_ignore_broadcasts /etc/sysctl.conf; then
-	sed -ri "s|(^(.{0,2})net.ipv4.icmp_echo_ignore_broadcasts)( *)?(.*)|net.ipv4.icmp_echo_ignore_broadcasts=1|1" /etc/sysctl.conf
-	else
-	echo "net.ipv4.icmp_echo_ignore_broadcasts=1" >> /etc/sysctl.conf
-	fi
-	
-	# Disable source packet routing
-	if grep -q net.ipv4.conf.all.accept_source_route /etc/sysctl.conf; then
-	sed -ri "s|(^(.{0,2})net.ipv4.conf.all.accept_source_route)( *)?(.*)|net.ipv4.conf.all.accept_source_route = 0|1" /etc/sysctl.conf
-	else
-	echo "net.ipv4.conf.all.accept_source_route = 0" >> /etc/sysctl.conf
-	fi
-	
-	if grep -q net.ipv6.conf.all.accept_source_route /etc/sysctl.conf; then
-	sed -ri "s|(^(.{0,2})net.ipv6.conf.all.accept_source_route)( *)?(.*)|net.ipv6.conf.all.accept_source_route = 0|1" /etc/sysctl.conf
-	else
-	echo "net.ipv6.conf.all.accept_source_route = 0" >> /etc/sysctl.conf
-	fi
-	
-	if grep -q net.ipv4.conf.default.accept_source_route /etc/sysctl.conf; then
-	sed -ri "s|(^(.{0,2})net.ipv4.conf.default.accept_source_route)( *)?(.*)|net.ipv4.conf.default.accept_source_route = 0|1" /etc/sysctl.conf
-	else
-	echo "net.ipv4.conf.default.accept_source_route = 0" >> /etc/sysctl.conf
-	fi
-	
-	if grep -q net.ipv6.conf.default.accept_source_route /etc/sysctl.conf; then
-	sed -ri "s|(^(.{0,2})net.ipv6.conf.default.accept_source_route)( *)?(.*)|net.ipv6.conf.default.accept_source_route = 0|1" /etc/sysctl.conf
-	else
-	echo "net.ipv6.conf.default.accept_source_route = 0" >> /etc/sysctl.conf
-	fi
-	
-	# Ignore send redirects
-	if grep -q net.ipv4.conf.all.send_redirects /etc/sysctl.conf; then
-	sed -ri "s|(^(.{0,2})net.ipv4.conf.all.send_redirects)( *)?(.*)|net.ipv4.conf.all.send_redirects = 0|1" /etc/sysctl.conf
-	else
-	echo "net.ipv4.conf.all.send_redirects = 0" >> /etc/sysctl.conf
-	fi
-	
-	if grep -q net.ipv4.conf.default.send_redirects /etc/sysctl.conf; then
-	sed -ri "s|(^(.{0,2})net.ipv4.conf.default.send_redirects)( *)?(.*)|net.ipv4.conf.default.send_redirects = 0|1" /etc/sysctl.conf
-	else
-	echo "net.ipv4.conf.default.send_redirects = 0" >> /etc/sysctl.conf
-	fi
-	
-	# Log Martians
-	if grep -q net.ipv4.conf.all.log_martians /etc/sysctl.conf; then
-	sed -ri "s|(^(.{0,2})net.ipv4.conf.all.log_martians)( *)?(.*)|net.ipv4.conf.all.log_martians = 1|1" /etc/sysctl.conf
-	else
-	echo "net.ipv4.conf.all.log_martians = 1" >> /etc/sysctl.conf
-	fi
-	
-	# Bogus error responses
-	if grep -q net.ipv4.icmp_ignore_bogus_error_responses /etc/sysctl.conf; then
-	sed -ri "s|(^(.{0,2})net.ipv4.icmp_ignore_bogus_error_responses)( *)?(.*)|net.ipv4.icmp_ignore_bogus_error_responses = 1|1" /etc/sysctl.conf
-	else
-	echo "net.ipv4.icmp_ignore_bogus_error_responses = 1" >> /etc/sysctl.conf
-	fi
-	
-	# Ignore ICMP redirects
-	if grep -q net.ipv4.conf.all.accept_redirects /etc/sysctl.conf; then
-	sed -ri "s|(^(.{0,2})net.ipv4.conf.all.accept_redirects)( *)?(.*)|net.ipv4.conf.all.accept_redirects = 0|1" /etc/sysctl.conf
-	else
-	echo "net.ipv4.conf.all.accept_redirects = 0" >> /etc/sysctl.conf
-	fi
-	
-	if grep -q net.ipv6.conf.all.accept_redirects /etc/sysctl.conf; then
-	sed -ri "s|(^(.{0,2})net.ipv6.conf.all.accept_redirects)( *)?(.*)|net.ipv6.conf.all.accept_redirects = 0|1" /etc/sysctl.conf
-	else
-	echo "net.ipv6.conf.all.accept_redirects = 0" >> /etc/sysctl.conf
-	fi
-	
-	if grep -q net.ipv4.conf.default.accept_redirects /etc/sysctl.conf; then
-	sed -ri "s|(^(.{0,2})net.ipv4.conf.default.accept_redirects)( *)?(.*)|net.ipv4.conf.default.accept_redirects = 0|1" /etc/sysctl.conf
-	else
-	echo "net.ipv4.conf.default.accept_redirects = 0" >> /etc/sysctl.conf
-	fi
-	
-	if grep -q net.ipv6.conf.default.accept_redirects /etc/sysctl.conf; then
-	sed -ri "s|(^(.{0,2})net.ipv6.conf.default.accept_redirects)( *)?(.*)|net.ipv6.conf.default.accept_redirects = 0|1" /etc/sysctl.conf
-	else
-	echo "net.ipv6.conf.default.accept_redirects = 0" >> /etc/sysctl.conf
-	fi
-	
-	# Ignore Directed pings
-	if grep -q net.ipv4.icmp_echo_ignore_all /etc/sysctl.conf; then
-	sed -ri "s|(^(.{0,2})net.ipv4.icmp_echo_ignore_all)( *)?(.*)|net.ipv4.icmp_echo_ignore_all = 1|1" /etc/sysctl.conf
-	else
-	echo "net.ipv4.icmp_echo_ignore_all = 1" >> /etc/sysctl.conf
-	fi
-	
-	# restart the service
-	sysctl -p.
-	
-	# Prevent IP spoofing
-	if grep -q order /etc/sysctl.conf; then
-	sed -ri "s|(^(.{0,2})order)( *)?(.*)|order bind,hosts|1" /etc/host.conf
-	else
-	echo "order bind,hosts" >> /etc/host.conf
-	fi
-	
-	if grep -q multi /etc/sysctl.conf; then
-	sed -ri "s|(^(.{0,2})multi)( *)?(.*)|#multi on|1" /etc/host.conf
-	else
-	echo "#multi on" >> /etc/host.conf
-	fi
-	
-	if grep -q nospoof /etc/sysctl.conf; then
-	sed -ri "s|(^(.{0,2})nospoof)( *)?(.*)|nospoof on|1" /etc/host.conf
-	else
-	echo "nospoof on" >> /etc/host.conf
-	fi
+# /etc/fail2ban/filter.d/blacklist.conf
+# Fail2Ban Blacklist for Repeat Offenders (filter.d)
+#
+# Version: 1.0
+# GitHub: https://github.com/mitchellkrogza/Fail2Ban-Blacklist-JAIL-for-Repeat-Offenders-with-Perma-Extended-Banning
+# Tested On: Fail2Ban 0.91
+# Server: Ubuntu 16.04
+# Firewall: IPTables
+#
+
+[INCLUDES]
+
+# Read common prefixes. If any customizations available -- read them from
+# common.local
+before = common.conf
+
+[Definition]
+
+_daemon = fail2ban\.actions\s*
+
+# The name of the jail that this filter is used for. In jail.conf, name the 
+# jail using this filter 'blacklist', or change this line!
+_jailname = blacklist
+
+failregex = ^(%(__prefix_line)s| %(_daemon)s%(__pid_re)s?:\s+)NOTICE\s+\[(?!%(_jailname)s\])(?:.*)\]\s+Ban\s+<HOST>\s*$
+
+ignoreregex = 
+
+[Init]
+
+journalmatch = _SYSTEMD_UNIT=fail2ban.service PRIORITY=5
+EOF
+
+systemctl restart fail2ban
+
+#
+# Secure shared memory
+#
+
+cat <<EOF >> /etc/fstab
+
+tmpfs /run/shm tmpfs defaults,noexec,nosuid 0 0
+EOF
+
+# Harden the networking layer
+
+# Prevent source routing of incoming packets
+# enable Spoof protection
+if grep -q net.ipv4.conf.default.rp_filter /etc/sysctl.conf; then
+sed -ri "s|(^(.{0,2})net.ipv4.conf.default.rp_filter)( *)?(.*)|net.ipv4.conf.default.rp_filter = 1|1" /etc/sysctl.conf
+else
+echo "net.ipv4.conf.default.rp_filter=1" >> /etc/sysctl.conf
+fi
+
+if grep -q net.ipv4.conf.all.rp_filter /etc/sysctl.conf; then
+sed -ri "s|(^(.{0,2})net.ipv4.conf.all.rp_filter)( *)?(.*)|net.ipv4.conf.all.rp_filter=1|1" /etc/sysctl.conf
+else
+echo "net.ipv4.conf.all.rp_filter=1" >> /etc/sysctl.conf
+fi
+
+# enable TCP/IP SYN cookies
+if grep -q net.ipv4.tcp_syncookies /etc/sysctl.conf; then
+sed -ri "s|(^(.{0,2})net.ipv4.tcp_syncookies)( *)?(.*)|net.ipv4.tcp_syncookies=1|1" /etc/sysctl.conf
+else
+echo "net.ipv4.tcp_syncookies=1" >> /etc/sysctl.conf
+fi
+
+# Ignore ICMP broadcat requests
+if grep -q net.ipv4.icmp_echo_ignore_broadcasts /etc/sysctl.conf; then
+sed -ri "s|(^(.{0,2})net.ipv4.icmp_echo_ignore_broadcasts)( *)?(.*)|net.ipv4.icmp_echo_ignore_broadcasts=1|1" /etc/sysctl.conf
+else
+echo "net.ipv4.icmp_echo_ignore_broadcasts=1" >> /etc/sysctl.conf
+fi
+
+# Disable source packet routing
+if grep -q net.ipv4.conf.all.accept_source_route /etc/sysctl.conf; then
+sed -ri "s|(^(.{0,2})net.ipv4.conf.all.accept_source_route)( *)?(.*)|net.ipv4.conf.all.accept_source_route = 0|1" /etc/sysctl.conf
+else
+echo "net.ipv4.conf.all.accept_source_route = 0" >> /etc/sysctl.conf
+fi
+
+if grep -q net.ipv6.conf.all.accept_source_route /etc/sysctl.conf; then
+sed -ri "s|(^(.{0,2})net.ipv6.conf.all.accept_source_route)( *)?(.*)|net.ipv6.conf.all.accept_source_route = 0|1" /etc/sysctl.conf
+else
+echo "net.ipv6.conf.all.accept_source_route = 0" >> /etc/sysctl.conf
+fi
+
+if grep -q net.ipv4.conf.default.accept_source_route /etc/sysctl.conf; then
+sed -ri "s|(^(.{0,2})net.ipv4.conf.default.accept_source_route)( *)?(.*)|net.ipv4.conf.default.accept_source_route = 0|1" /etc/sysctl.conf
+else
+echo "net.ipv4.conf.default.accept_source_route = 0" >> /etc/sysctl.conf
+fi
+
+if grep -q net.ipv6.conf.default.accept_source_route /etc/sysctl.conf; then
+sed -ri "s|(^(.{0,2})net.ipv6.conf.default.accept_source_route)( *)?(.*)|net.ipv6.conf.default.accept_source_route = 0|1" /etc/sysctl.conf
+else
+echo "net.ipv6.conf.default.accept_source_route = 0" >> /etc/sysctl.conf
+fi
+
+# Ignore send redirects
+if grep -q net.ipv4.conf.all.send_redirects /etc/sysctl.conf; then
+sed -ri "s|(^(.{0,2})net.ipv4.conf.all.send_redirects)( *)?(.*)|net.ipv4.conf.all.send_redirects = 0|1" /etc/sysctl.conf
+else
+echo "net.ipv4.conf.all.send_redirects = 0" >> /etc/sysctl.conf
+fi
+
+if grep -q net.ipv4.conf.default.send_redirects /etc/sysctl.conf; then
+sed -ri "s|(^(.{0,2})net.ipv4.conf.default.send_redirects)( *)?(.*)|net.ipv4.conf.default.send_redirects = 0|1" /etc/sysctl.conf
+else
+echo "net.ipv4.conf.default.send_redirects = 0" >> /etc/sysctl.conf
+fi
+
+# Log Martians
+if grep -q net.ipv4.conf.all.log_martians /etc/sysctl.conf; then
+sed -ri "s|(^(.{0,2})net.ipv4.conf.all.log_martians)( *)?(.*)|net.ipv4.conf.all.log_martians = 1|1" /etc/sysctl.conf
+else
+echo "net.ipv4.conf.all.log_martians = 1" >> /etc/sysctl.conf
+fi
+
+# Bogus error responses
+if grep -q net.ipv4.icmp_ignore_bogus_error_responses /etc/sysctl.conf; then
+sed -ri "s|(^(.{0,2})net.ipv4.icmp_ignore_bogus_error_responses)( *)?(.*)|net.ipv4.icmp_ignore_bogus_error_responses = 1|1" /etc/sysctl.conf
+else
+echo "net.ipv4.icmp_ignore_bogus_error_responses = 1" >> /etc/sysctl.conf
+fi
+
+# Ignore ICMP redirects
+if grep -q net.ipv4.conf.all.accept_redirects /etc/sysctl.conf; then
+sed -ri "s|(^(.{0,2})net.ipv4.conf.all.accept_redirects)( *)?(.*)|net.ipv4.conf.all.accept_redirects = 0|1" /etc/sysctl.conf
+else
+echo "net.ipv4.conf.all.accept_redirects = 0" >> /etc/sysctl.conf
+fi
+
+if grep -q net.ipv6.conf.all.accept_redirects /etc/sysctl.conf; then
+sed -ri "s|(^(.{0,2})net.ipv6.conf.all.accept_redirects)( *)?(.*)|net.ipv6.conf.all.accept_redirects = 0|1" /etc/sysctl.conf
+else
+echo "net.ipv6.conf.all.accept_redirects = 0" >> /etc/sysctl.conf
+fi
+
+if grep -q net.ipv4.conf.default.accept_redirects /etc/sysctl.conf; then
+sed -ri "s|(^(.{0,2})net.ipv4.conf.default.accept_redirects)( *)?(.*)|net.ipv4.conf.default.accept_redirects = 0|1" /etc/sysctl.conf
+else
+echo "net.ipv4.conf.default.accept_redirects = 0" >> /etc/sysctl.conf
+fi
+
+if grep -q net.ipv6.conf.default.accept_redirects /etc/sysctl.conf; then
+sed -ri "s|(^(.{0,2})net.ipv6.conf.default.accept_redirects)( *)?(.*)|net.ipv6.conf.default.accept_redirects = 0|1" /etc/sysctl.conf
+else
+echo "net.ipv6.conf.default.accept_redirects = 0" >> /etc/sysctl.conf
+fi
+
+# Ignore Directed pings
+if grep -q net.ipv4.icmp_echo_ignore_all /etc/sysctl.conf; then
+sed -ri "s|(^(.{0,2})net.ipv4.icmp_echo_ignore_all)( *)?(.*)|net.ipv4.icmp_echo_ignore_all = 1|1" /etc/sysctl.conf
+else
+echo "net.ipv4.icmp_echo_ignore_all = 1" >> /etc/sysctl.conf
+fi
+
+# restart the service
+sysctl -p.
+
+# Prevent IP spoofing
+if grep -q order /etc/sysctl.conf; then
+sed -ri "s|(^(.{0,2})order)( *)?(.*)|order bind,hosts|1" /etc/host.conf
+else
+echo "order bind,hosts" >> /etc/host.conf
+fi
+
+if grep -q multi /etc/sysctl.conf; then
+sed -ri "s|(^(.{0,2})multi)( *)?(.*)|#multi on|1" /etc/host.conf
+else
+echo "#multi on" >> /etc/host.conf
+fi
+
+if grep -q nospoof /etc/sysctl.conf; then
+sed -ri "s|(^(.{0,2})nospoof)( *)?(.*)|nospoof on|1" /etc/host.conf
+else
+echo "nospoof on" >> /etc/host.conf
+fi
 }
 
 # ------------------------------------------------------------------------------
@@ -539,10 +551,10 @@ infobox "$installing"
 # ==============================================================================
 stfu apt update
 stfu apt-get -y install aptitude
-aptitude -yq3 update
-aptitude -yq3 full-upgrade
-aptitude -yq3 install ${BASE_PKGS[@]}
-aptitude -yq3 install ${PROJECT_PKGS[@]}
+stfu aptitude -yq3 update
+stfu aptitude -yq3 full-upgrade
+stfu aptitude -yq3 install ${BASE_PKGS[@]}
+stfu aptitude -yq3 install ${PROJECT_PKGS[@]}
 
 # Add bitcoin repo. *why?
 # stfu add-apt-repository -y ppa:bitcoin/bitcoin
@@ -555,9 +567,9 @@ aptitude -yq3 install ${PROJECT_PKGS[@]}
 # ==============================================================================
 # Firewall port
 # ==============================================================================
-ufw allow $P2P_PORT/tcp comment '$PROJECT_NAME P2P'
-ufw allow $$SSH_PORT/tcp comment 'SSH'
-ufw --force enable
+#ufw allow $P2P_PORT/tcp comment '$PROJECT_NAME P2P'
+#ufw allow $$SSH_PORT/tcp comment 'SSH'
+#ufw --force enable
 # ------------------------------------------------------------------------------
 
 # ==============================================================================
@@ -568,7 +580,7 @@ installing="Installing packages required for setup..."
 
 # ==============================================================================
 WT_BACKTITLE="$PROJECT_NAME Masternode Installer"
-WT_SIZE="8 78"
+WT_SIZE="24 78"
 WT_TITLE="Installing the $PROJECT_NAME Masternode..."
 # ==============================================================================
 step0="You will need:\n\n-A qt wallet with at least 2000 coins\n-An Ubuntu 16.04 64-bit server with a static public ip."
