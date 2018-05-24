@@ -93,7 +93,7 @@ user_in_group() {
 
 infobox() {
 	WT_HEIGHT=$(echo -e "$@" | wc -l)
-	(( WT_HEIGHT=WT_HEIGHT+6 ))
+	(( WT_HEIGHT=WT_HEIGHT+7 ))
 	WT_WIDTH=78
 	WT_SIZE="$WT_HEIGHT $WT_WIDTH"
 	TERM=ansi whiptail \
@@ -104,13 +104,12 @@ infobox() {
 }
 
 msgbox() {
-	WT_MESSAGE=$1
-	WT_HEIGHT=$(echo -e $WT_MESSAGE | wc -l)
+	WT_HEIGHT=$(echo -e "$@" | wc -l)
 	(( WT_HEIGHT=WT_HEIGHT+6 ))
 	WT_WIDTH=78
 	WT_SIZE="$WT_HEIGHT $WT_WIDTH"
 	TERM=ansi whiptail \
-	--msgbox $WT_MESSAGE \
+	--msgbox "$@" \
 	--backtitle "$WT_BACKTITLE" \
 	--title "$WT_TITLE" \
 	$WT_SIZE
@@ -605,20 +604,21 @@ stfu aptitude -yq3 install ${PROJECT_PKGS[@]}
 # ==============================================================================
 # Setup dialogs
 # ==============================================================================
-INSTALL_STEPS[installing]="Installing packages required for setup..."
-INSTALL_STEPS[step0]="You will need:\n\n-A qt wallet with at least $PROJECT_STAKE coins\n-An Ubuntu 16.04 64-bit server with a static public ip."
-INSTALL_STEPS[step1]="Start the qt wallet. Go to Settings?Debug console and enter the following command:\n\n\"createmasternodekey\"\n\nThe result will look something like this \"y0uRm4st3rn0depr1vatek3y\".  Enter it here"
-INSTALL_STEPS[step2]="Choose an alias for your masternode, for example MN1, then enter it here"
-INSTALL_STEPS[step3]="While still in the Debug console type the following command to get a public address to send the stake to:\n\n\"getaccountaddress $MN_ALIAS\"\n\nThe result will look similar to this \"mA7fXSTe23RNoD83Esx6or4uYLxLqunDm5\".  Send exactly $PROJECT_STAKE HASH to that address making sure that any tx fee is covered."
-INSTALL_STEPS[step4]="Back in the Debug console Execute the command:\n\n\"masternode outputs\"\n\nThis will output TX and output pairs of numbers, for example:\n\"{\n\"a9b31238d062ccb5f4b1eb6c3041d369cc014f5e6df38d2d303d791acd4302f2\": \"0\"\n}\"\nEnter just the first number, long number, here and the second number in the next screen."
-INSTALL_STEPS[step5]="Enter the second, single digit number from the previous step (usually \"0\" here."
-INSTALL_STEPS[step6]="Open the masternode.conf file via the menu Tools->Open Masternode Configuration File. Without any blank lines type in a space-delimited single line paste the following string:\n\n${MASTERNODE_CONF}\n\nSave and close the file."
-INSTALL_STEPS[step7]="Open the bash.conf file via the menu Tools->Open Wallet Configuration File and paste the following text:\n\n${LOCAL_WALLET_CONF}\n\nSave and close the file."
-INSTALL_STEPS[step8]="Installing binaries to /usr/local/bin..."
-INSTALL_STEPS[step9]="Creating configs in $WALLET_LOCATION..."
-INSTALL_STEPS[step10]="Creating and installing the $PROJECT_NAME systemd service..."
-INSTALL_STEPS[step11]="Restart the wallet.  You should see your Masternode listed in the Masternodes tab.\n\nIf you get errors, you may have made a mistake in either the $PROJECT_NAME.conf or masternodes.conf files.\n\nUse the buttons to start your alias.  It may take up to 24 hours for your masternode to fully propagate"
-
+declare -A INSTALL_STEPS=(
+	[installing]="Installing packages required for setup..."
+	[step0]="You will need:\n\n-A qt wallet with at least $PROJECT_STAKE coins\n-An Ubuntu 16.04 64-bit server with a static public ip."
+	[step1]="Start the qt wallet. Go to Settings?Debug console and enter the following command:\n\n\"createmasternodekey\"\n\nThe result will look something like this \"y0uRm4st3rn0depr1vatek3y\".  Enter it here"
+	[step2]="Choose an alias for your masternode, for example MN1, then enter it here"
+	[step3]="While still in the Debug console type the following command to get a public address to send the stake to:\n\n\"getaccountaddress $MN_ALIAS\"\n\nThe result will look similar to this \"mA7fXSTe23RNoD83Esx6or4uYLxLqunDm5\".  Send exactly $PROJECT_STAKE HASH to that address making sure that any tx fee is covered."
+	[step4]="Back in the Debug console Execute the command:\n\n\"masternode outputs\"\n\nThis will output TX and output pairs of numbers, for example:\n\"{\n\"a9b31238d062ccb5f4b1eb6c3041d369cc014f5e6df38d2d303d791acd4302f2\": \"0\"\n}\"\nEnter just the first number, long number, here and the second number in the next screen."
+	[step5]="Enter the second, single digit number from the previous step (usually \"0\" here."
+	[step6]="Open the masternode.conf file via the menu Tools->Open Masternode Configuration File. Without any blank lines type in a space-delimited single line paste the following string:\n\n${MASTERNODE_CONF}\n\nSave and close the file."
+	[step7]="Open the bash.conf file via the menu Tools->Open Wallet Configuration File and paste the following text:\n\n${LOCAL_WALLET_CONF}\n\nSave and close the file."
+	[step8]="Installing binaries to /usr/local/bin..."
+	[step9]="Creating configs in $WALLET_LOCATION..."
+	[step10]="Creating and installing the $PROJECT_NAME systemd service..."
+	[step11]="Restart the wallet.  You should see your Masternode listed in the Masternodes tab.\n\nIf you get errors, you may have made a mistake in either the $PROJECT_NAME.conf or masternodes.conf files.\n\nUse the buttons to start your alias.  It may take up to 24 hours for your masternode to fully propagate"
+)
 # ------------------------------------------------------------------------------
 
 # ==============================================================================
