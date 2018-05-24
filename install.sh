@@ -80,10 +80,13 @@ stfu() {
 }
 
 # Use 'copy_text "text to display"'
-copy_text() {
+text_to_copy() {
     echo "# ===========Copy text AFTER this line==========="
     echo "$@"
     echo "# ===========Copy text BEFORE this line==========="
+    echo
+    echo
+    read -n 1 -s -r -p "Press any key to continue..."
 }
 
 # Use 'user_in_group user group'
@@ -151,6 +154,24 @@ pre_checks() {
 	# check for updates
 	exit 1
 	fi
+}
+
+# install_packages from BASE_PKGS and PROJECT_PKGS array variables in addition to any other packages specified
+install_packages() {
+apt update
+apt-get -y install aptitude
+aptitude -yq3 update
+aptitude -yq3 full-upgrade
+# add an if exists to each of the following
+aptitude -yq3 install ${BASE_PKGS[@]} $@
+aptitude -yq3 install ${PROJECT_PKGS[@]}
+
+# Add bitcoin repo. *why?
+# stfu add-apt-repository -y ppa:bitcoin/bitcoin
+# stfu apt update
+# stfu aptitude -yq3 install \
+#	libdb4.8-dev \
+#	libdb4.8++-dev
 }
 
 change_hostname() {
@@ -578,25 +599,6 @@ pre_checks
 # ------------------------------------------------------------------------------
 
 # ==============================================================================
-WT_TITLE="Installing dependencies..."
-infobox "$installing"
-# ==============================================================================
-stfu apt update
-stfu apt-get -y install aptitude
-stfu aptitude -yq3 update
-stfu aptitude -yq3 full-upgrade
-stfu aptitude -yq3 install ${BASE_PKGS[@]}
-stfu aptitude -yq3 install ${PROJECT_PKGS[@]}
-
-# Add bitcoin repo. *why?
-# stfu add-apt-repository -y ppa:bitcoin/bitcoin
-# stfu apt update
-# stfu aptitude -yq3 install \
-#	libdb4.8-dev \
-#	libdb4.8++-dev
-# ------------------------------------------------------------------------------
-
-# ==============================================================================
 # Setup dialogs
 # ==============================================================================
 declare -a INSTALL_OPTIONS=(
@@ -616,13 +618,20 @@ declare -A INSTALL_STEPS=(
 	[step3]="While still in the Debug console type the following command to get a public address to send the stake to:\n\n\"getaccountaddress $MN_ALIAS\"\n\nThe result will look similar to this \"mA7fXSTe23RNoD83Esx6or4uYLxLqunDm5\".  Send exactly $PROJECT_STAKE HASH to that address making sure that any tx fee is covered."
 	[step4]="Back in the Debug console Execute the command:\n\n\"masternode outputs\"\n\nThis will output TX and output pairs of numbers, for example:\n\"{\n\"a9b31238d062ccb5f4b1eb6c3041d369cc014f5e6df38d2d303d791acd4302f2\": \"0\"\n}\"\nEnter just the first number, long number, here and the second number in the next screen."
 	[step5]="Enter the second, single digit number from the previous step (usually \"0\" here."
-	[step6]="Open the masternode.conf file via the menu Tools->Open Masternode Configuration File. Without any blank lines type in a space-delimited single line paste the following string:\n\n${MASTERNODE_CONF}\n\nSave and close the file."
-	[step7]="Open the bash.conf file via the menu Tools->Open Wallet Configuration File and paste the following text:\n\n${LOCAL_WALLET_CONF}\n\nSave and close the file."
+	[step6]="Open the masternode.conf file via the menu Tools->Open Masternode Configuration File. Without any blank lines type in a space-delimited single line paste the string that will appear on the next screen then save and close the file."
+	[step7]="Open the bash.conf file via the menu Tools->Open Wallet Configuration File and paste the lines that will appear on the next screen then save and close the file"
 	[step8]="Installing binaries to /usr/local/bin..."
 	[step9]="Creating configs in $WALLET_LOCATION..."
 	[step10]="Creating and installing the $PROJECT_NAME systemd service..."
 	[step11]="Restart the wallet.  You should see your Masternode listed in the Masternodes tab.\n\nIf you get errors, you may have made a mistake in either the $PROJECT_NAME.conf or masternodes.conf files.\n\nUse the buttons to start your alias.  It may take up to 24 hours for your masternode to fully propagate"
 )
+# ------------------------------------------------------------------------------
+
+# ==============================================================================
+WT_TITLE="Installing dependencies..."
+infobox "$installing"
+# ==============================================================================
+install_packages
 # ------------------------------------------------------------------------------
 
 # ==============================================================================
@@ -636,7 +645,9 @@ msgbox $step3
 COLLATERAL_OUTPUT_TXID=$(inputbox $step4)
 COLLATERAL_OUTPUT_INDEX=$(inputbox $step5)
 msgbox $step6
+	text_to_copy $MASTERNODE_CONF
 msgbox $step7
+	text_to_copy $LOCAL_WALLET_CONF
 msgbox $step8
 	download_binaries $PROJECT_NAME $PROJECT_GITHUB_REPO
 infobox $step9
