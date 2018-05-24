@@ -91,6 +91,7 @@ user_in_group() {
     groups $1 | grep -q "\b$2\b"
 }
 
+# infobox TEXT
 infobox() {
 	WT_HEIGHT=$(echo -e "$@" | wc -l)
 	(( WT_HEIGHT=WT_HEIGHT+7 ))
@@ -103,6 +104,7 @@ infobox() {
 	$WT_SIZE
 }
 
+# msgbox TEXT
 msgbox() {
 	WT_HEIGHT=$(echo -e "$@" | wc -l)
 	(( WT_HEIGHT=WT_HEIGHT+6 ))
@@ -115,6 +117,7 @@ msgbox() {
 	$WT_SIZE
 }
 
+# inputbox TEXT
 inputbox() {
 	WT_HEIGHT=$(echo -e "$@" | wc -l)
 	(( WT_HEIGHT=WT_HEIGHT+6 ))
@@ -604,6 +607,15 @@ stfu aptitude -yq3 install ${PROJECT_PKGS[@]}
 # ==============================================================================
 # Setup dialogs
 # ==============================================================================
+declare -a INSTALL_OPTIONS=(
+	"Change Hostame"
+	"Create Swap for low ram vps"
+	"Add non-root user"
+	"Automatic security updates"
+	"Install and configure UFW Firewall"
+	"Install and configure Fail2Ban IDS"
+	"Harden SSH security"
+)
 declare -A INSTALL_STEPS=(
 	[installing]="Installing packages required for setup..."
 	[step0]="You will need:\n\n-A qt wallet with at least $PROJECT_STAKE coins\n-An Ubuntu 16.04 64-bit server with a static public ip."
