@@ -79,11 +79,11 @@ stfu() {
   "$@" >/dev/null 2>&1
 }
 
-# Use 'print_status "text to display"'
-print_status() {
-    echo
-    echo "## $1"
-    echo
+# Use 'copy_text "text to display"'
+copy_text() {
+    echo "# ===========Copy text AFTER this line==========="
+    echo "$@"
+    echo "# ===========Copy text BEFORE this line==========="
 }
 
 # Use 'user_in_group user group'
@@ -594,14 +594,6 @@ stfu aptitude -yq3 install ${PROJECT_PKGS[@]}
 # stfu aptitude -yq3 install \
 #	libdb4.8-dev \
 #	libdb4.8++-dev
-# ------------------------------------------------------------------------------
-
-# ==============================================================================
-# Firewall port
-# ==============================================================================
-#ufw allow $P2P_PORT/tcp comment '$PROJECT_NAME P2P'
-#ufw allow $$SSH_PORT/tcp comment 'SSH'
-#ufw --force enable
 # ------------------------------------------------------------------------------
 
 # ==============================================================================
