@@ -213,7 +213,7 @@ USERNAME=$(inputbox "Please enter the new user name")
 else
 USERNAME=$1
 fi
-USER_PASSWORD=$(inputbox "Please enter a password for \'${USERNAME}\'")
+USER_PASSWORD=$(inputbox "Please enter a password for '${USERNAME}'")
 adduser --gecos "" --disabled-password --quiet "$USERNAME"
 echo "$USERNAME:$USER_PASSWORD" | chpasswd
 # Add user to sudoers
@@ -288,7 +288,7 @@ setup_ufw() {
     # allow $ALLOWED_PORTS
     # allow all ports from $REMOTE_IP
     # Enable the firewall
-    ufw enable
+    ufw --force enable
 }
 
 setup_fail2ban() {
@@ -420,8 +420,6 @@ ignoreregex =
 
 journalmatch = _SYSTEMD_UNIT=fail2ban.service PRIORITY=5
 EOF
-
-systemctl restart fail2ban
 
 #
 # Secure shared memory
@@ -567,6 +565,9 @@ sed -ri "s|(^(.{0,2})nospoof)( *)?(.*)|nospoof on|1" /etc/host.conf
 else
 echo "nospoof on" >> /etc/host.conf
 fi
+
+systemctl restart fail2ban
+
 }
 
 # download_binaries PROJECT_NAME PROJECT_GITHUB_REPO
@@ -650,7 +651,7 @@ change_hostname
 create_swap
 create_user
 # harden_ssh #Needs work
-setup_ufw
+stfu setup_ufw
 setup_fail2ban
 # ------------------------------------------------------------------------------
 
@@ -673,9 +674,9 @@ infobox "${INSTALL_STEPS[step8]}"
     download_binaries
 infobox "${INSTALL_STEPS[step9]}"
 SERVER_WALLET_CONF="RPCUSER=${RPCUSER}\nRPCPASSWORD=${RPCPASSWORD}\nrpcallowip=127.0.0.1\nlisten=1\nserver=1\ndaemon=1\nlogtimestamps=1\nmaxconnections=256\nmasternode=1\nexternalip=${PUBLIC_IP}\nbind=${PUBLIC_IP}:${P2P_PORT}\nmasternodeaddr=${PUBLIC_IP}\nmasternodeprivkey=${MN_PRIV_KEY}\nmnconf=${WALLET_LOCATION}/masternode.conf\ndatadir=${WALLET_LOCATION}"
-    wallet_configs
+    stfu wallet_configs
 infobox "${INSTALL_STEPS[step10]}"
-    daemon_service
+    stfu daemon_service
 msgbox "${INSTALL_STEPS[step11]}"
 # ==============================================================================
 # Display logo
