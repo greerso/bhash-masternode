@@ -178,8 +178,9 @@ aptitude -yq3 install ${PROJECT_PKGS[@]}
 }
 
 change_hostname() {
+HOSTNAME=$(hostname)
 if [ -z "$1" ]; then
-newHostname=$(inputbox "Your hostname is $Hostname,  please enter a new hostname then press ok.")
+newHostname=$(inputbox "Your hostname is $HOSTNAME,  please enter a new hostname then press ok.")
 else
 newHostname="$1"
 fi
@@ -638,7 +639,7 @@ msgbox "${INSTALL_STEPS[step0]}"
 WT_TITLE="Installing dependencies..."
 infobox "${INSTALL_STEPS[installing]}"
 # ==============================================================================
-install_packages
+stfu install_packages
 # ------------------------------------------------------------------------------
 
 # ==============================================================================
