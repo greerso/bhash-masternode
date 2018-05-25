@@ -16,6 +16,7 @@
 # Project Specific
     PROJECT_NAME="bhash"
     PROJECT_GITHUB_REPO="bhashcoin/bhash"
+    GITHUB_BIN_SUFFIX=linux
     PROJECT_STAKE=2000
 #
 export NEWT_COLORS=''
@@ -33,16 +34,12 @@ WALLET_LOCATION="${HOME}/.${PROJECT_NAME}"
 DAEMON_BINARY="${PROJECT_NAME}d"
 PROJECT_CLI="${PROJECT_NAME}-cli"
 PROJECT_LOGO="          *////////////*                       \n         ///////////////                       \n         *//////////////                       \n         ****//////////                        \n        ********///////                        \n        ***********///*                        \n       /**************////////*,               \n       *******************/////////,           \n       **********************/////////         \n       *************************///////*       \n      ,*************@@@@***%@@@%***//////      \n      *************/@@@&***@@@@/******////     \n      *********@@@@@@@@@@@@@@@@@@@*******//    \n     **********@@@@@@@@@@@@@@@@@@@*********,   \n     *************/@@@@***&@@@**************   \n     *************&@@@#***@@@@*************,   \n    ,**********@@@@@@@@@@@@@@@@@@&*********/   \n    ,,********/@@@@@@@@@@@@@@@@@@**********    \n    ,,,,,********#@@@/***@@@@*************/    \n   ,,,,,,,,*****@@@@***(@@@@************(     \n   ,,,,,,,,,,,**************************       \n   ,,,,,,,,,,,,,,,********************/        \n  .,,,,,,,,,,,,,,,,,,****************          \n  .,,,,,,,,,,,,,/,,,,,,,**********             "
-LOCAL_WALLET_CONF="rpcpassword=$RPCUSER\nrpcpassword=$RPCPASSWORD\nrpcallowip=127.0.0.1\nlisten=0\nserver=1\ndaemon=1\nlogtimestamps=1\nmaxconnections=256\nmasternode=1"
-SERVER_WALLET_CONF="RPCUSER=$RPCUSER\nRPCPASSWORD=$RPCPASSWORD\nrpcallowip=127.0.0.1\nlisten=1\nserver=1\ndaemon=1\nlogtimestamps=1\nmaxconnections=256\nmasternode=1\nexternalip=$PUBLIC_IP\nbind=$PUBLIC_IP:$P2P_PORT\nmasternodeaddr=$PUBLIC_IP\nmasternodeprivkey=$MN_PRIV_KEY\nmnconf=$WALLET_LOCATION/masternode.conf\ndatadir=$WALLET_LOCATION"
-declare ${PROJECT_NAME}_OS=linux
 WT_BACKTITLE="$PROJECT_NAME Masternode Installer"
 WT_TITLE="Installing the $PROJECT_NAME Masternode..."
 declare MN_ALIAS
 declare MN_PRIV_KEY
 declare COLLATERAL_OUTPUT_TXID
 declare COLLATERAL_OUTPUT_INDEX
-LOCAL_WALLET_CONF="rpcuser=$RPCUSER\nrpcpassword=$RPCPASSWORD\nrpcallowip=127.0.0.1\nlisten=0\nserver=1\ndaemon=1\nlogtimestamps=1\nmaxconnections=256"
 DAEMON_SERVICE="[Unit]\nDescription=$PROJECT_NAME daemon\nAfter=network.target\n\n[Service]\nExecStart=/usr/local/bin/$DAEMON_BINARY --daemon --conf=$WALLET_LOCATION/$PROJECT_NAME.conf -pid=/run/$DAEMON_BINARY/$DAEMON_BINARY.pid\nRuntimeDirectory=$DAEMON_BINARY\nUser=$LINUX_USER\nType=forking\nWorkingDirectory=$WALLET_LOCATION\nPIDFile=/run/$DAEMON_BINARY/$DAEMON_BINARY.pid\nRestart=on-failure\n\nPrivateTmp=true\nProtectSystem=full\nNoNewPrivileges=true\nPrivateDevices=true\nMemoryDenyWriteExecute=true\n\n[Install]\nWantedBy=multi-user.target"
 declare -a BASE_PKGS=(\
     apt-transport-https \
@@ -80,9 +77,9 @@ stfu() {
 
 # Use 'copy_text "text to display"'
 text_to_copy() {
-	clear
-	echo
-	echo
+    clear
+    echo
+    echo
     echo "# ===========Start copy text AFTER this line==========="
     echo -e "$@"
     echo "# ===========Stop copy text BEFORE this line==========="
@@ -573,22 +570,21 @@ fi
 
 # download_binaries PROJECT_NAME PROJECT_GITHUB_REPO
 download_binaries() {
-    PROJECT_NAME=$1
-    PROJECT_GITHUB_REPO=$2
-    ${PROJECT_NAME}_URL=$(curl -s https://api.github.com/repos/${PROJECT_GITHUB_REPO}/releases/latest | jq -r ".assets[] | select(.name | test(\"${PROJECT_NAME}_OS\")) | .browser_download_url")
-    curl -sSL "${PROJECT_NAME}_URL" | tar xvz -C /usr/local/bin/
-
+GITHUB_BIN_URL="$(curl -sSL https://api.github.com/repos/${PROJECT_GITHUB_REPO}/releases/latest | jq -r ".assets[] | select(.name | test(\"$GITHUB_BIN_SUFFIX\")) | .browser_download_url")"
+    
+    curl -sSL "${!var}" | tar xvz -C /usr/local/bin/
 }
 
 wallet_configs() {
-    mkdir -p $WALLET_LOCATION
-    cat <<EOF > $WALLET_LOCATION/masternode.conf
-    $MASTERNODE_CONF
-    EOF
-    SERVER_WALLET_CONF=$(echo -e $SERVER_WALLET_CONF)
-    cat <<EOF > $WALLET_LOCATION/$PROJECT_NAME.conf
-    EOF
-    stfu chown -R $LINUX_USER $WALLET_LOCATION
+mkdir -p $WALLET_LOCATION
+cat <<EOF > $WALLET_LOCATION/masternode.conf
+$MASTERNODE_CONF
+EOF
+SERVER_WALLET_CONF=$(echo -e $SERVER_WALLET_CONF)
+cat <<EOF > $WALLET_LOCATION/${PROJECT_NAME}.conf
+$SERVER_WALLET_CONF
+EOF
+chown -R $LINUX_USER $WALLET_LOCATION
 }
 
 daemon_service() {
@@ -632,7 +628,7 @@ declare -A INSTALL_STEPS=(
     [step8]="Installing binaries to /usr/local/bin..."
     [step9]="Creating configs in $WALLET_LOCATION..."
     [step10]="Creating and installing the $PROJECT_NAME systemd service..."
-    [step11]="Restart the wallet.  You should see your Masternode listed in the Masternodes tab.\n\nIf you get errors, you may have made a mistake in either the $PROJECT_NAME.conf or masternodes.conf files.\n\nUse the buttons to start your alias.  It may take up to 24 hours for your masternode to fully propagate"
+    [step11]="Restart the wallet.  You should see your Masternode listed in the Masternodes tab.\n\nUse the [Start Alias] button in the wallet to start your alias.  It may take up to 24 hours for your masternode to fully propagate"
 )
 # ------------------------------------------------------------------------------
 
@@ -641,6 +637,18 @@ WT_TITLE="Installing dependencies..."
 infobox "${INSTALL_STEPS[installing]}"
 # ==============================================================================
 install_packages
+# ------------------------------------------------------------------------------
+
+# ==============================================================================
+WT_TITLE="Server Config"
+# ==============================================================================
+unattended-upgrades
+change_hostname
+create_swap
+create_user
+# harden_ssh #Needs work
+setup_ufw
+setup_fail2ban
 # ------------------------------------------------------------------------------
 
 # ==============================================================================
@@ -654,13 +662,15 @@ msgbox "${INSTALL_STEPS[step3]}"
 COLLATERAL_OUTPUT_TXID=$(inputbox "${INSTALL_STEPS[step4]}")
 COLLATERAL_OUTPUT_INDEX=$(inputbox "${INSTALL_STEPS[step5]}")
 msgbox "${INSTALL_STEPS[step6]}"
-	MASTERNODE_CONF="$MN_ALIAS $PUBLIC_IP:$P2P_PORT $MN_PRIV_KEY $COLLATERAL_OUTPUT_TXID $COLLATERAL_OUTPUT_INDEX"
+    MASTERNODE_CONF="$MN_ALIAS $PUBLIC_IP:$P2P_PORT $MN_PRIV_KEY $COLLATERAL_OUTPUT_TXID $COLLATERAL_OUTPUT_INDEX"
     text_to_copy $MASTERNODE_CONF
 msgbox "${INSTALL_STEPS[step7]}"
+LOCAL_WALLET_CONF="rpcuser=$RPCUSER\nrpcpassword=$RPCPASSWORD\nrpcallowip=127.0.0.1\nlisten=0\nserver=1\ndaemon=1\nlogtimestamps=1\nmaxconnections=256"
     text_to_copy $LOCAL_WALLET_CONF
-msgbox "${INSTALL_STEPS[step8]}"
-    download_binaries $PROJECT_NAME $PROJECT_GITHUB_REPO
+infobox "${INSTALL_STEPS[step8]}"
+    download_binaries
 infobox "${INSTALL_STEPS[step9]}"
+SERVER_WALLET_CONF="RPCUSER=${RPCUSER}\nRPCPASSWORD=${RPCPASSWORD}\nrpcallowip=127.0.0.1\nlisten=1\nserver=1\ndaemon=1\nlogtimestamps=1\nmaxconnections=256\nmasternode=1\nexternalip=${PUBLIC_IP}\nbind=${PUBLIC_IP}:${P2P_PORT}\nmasternodeaddr=${PUBLIC_IP}\nmasternodeprivkey=${MN_PRIV_KEY}\nmnconf=${WALLET_LOCATION}/masternode.conf\ndatadir=${WALLET_LOCATION}"
     wallet_configs
 infobox "${INSTALL_STEPS[step10]}"
     daemon_service
@@ -669,36 +679,20 @@ msgbox "${INSTALL_STEPS[step11]}"
 # Display logo
 # ==============================================================================
 clear
-echo -e "$PROJECT_LOGO\n\nUseful commands:\n'$PROJECT_CLI masternode status'   #Get the status of your masternode\n'${PROJECT_CLI} --help'              #Get a list of things that $PROJECT_CLI can do\n'sudo systemctl stop $DAEMON_BINARY'    #Stop the $PROJECT_NAME Daemon\n'sudo systemctl start ${DAEMON_BINARY}'   #Start the $PROJECT_NAME Daemon\n'sudo systemctl restart $DAEMON_BINARY' #Restart the $PROJECT_NAME Daemon\n'sudo systemctl status $DAEMON_BINARY'  #Get the status $PROJECT_NAME Daemon\n\nFor a beginners quick start for linux see https://steemit.com/tutorial/@greerso/linux-cli-command-line-interface-primer-for-beginners"
+echo -e "${PROJECT_LOGO}\n\nUseful commands:\n'${PROJECT_CLI} masternode status'   #Get the status of your masternode\n'${PROJECT_CLI} --help'              #Get a list of things that ${PROJECT_CLI} can do\n'sudo systemctl stop ${DAEMON_BINARY}'    #Stop the ${PROJECT_NAME} Daemon\n'sudo systemctl start ${DAEMON_BINARY}'   #Start the ${PROJECT_NAME} Daemon\n'sudo systemctl restart ${DAEMON_BINARY}' #Restart the ${PROJECT_NAME} Daemon\n'sudo systemctl status ${DAEMON_BINARY}'  #Get the status ${PROJECT_NAME} Daemon\n\nFor a beginners quick start for linux see https://steemit.com/tutorial/@greerso/linux-cli-command-line-interface-primer-for-beginners"
 # ------------------------------------------------------------------------------
 
 # ==============================================================================
-# Install Steps
+# TODO
 # ==============================================================================
-#Base Server Options
-#   Set Hostname
-#   Create Swap for low ram vps
-#   Add non-root user
-#   Automatic security updates
-#   Install and configure UFW Firewall
-#       Allow all outbound traffic
-#       Deny all inbound traffic
-#       Allow inbound P2P for Masternode and SSH
-#       Whitelist installer ip address
-#   Install and configure Fail2Ban IDS
-#       Email reports of hacking activity
-#       Autoblock repeat offenders from public blacklist
+#	Make Base Installs optional
+#   Fail2Ban email reports of hacking activity
 #   Harden SSH security
 #       Change port 22
 #       Disable root logon
 #       Require ssh-keys
 ##Masternode install
 #   Check for already installed
-#       Check daemon update
+#       Check daemon up-to-date
 #           install update
-##  Simple Q&A process
-#   Secure install (no root user)
-#   Prompts with instructions
-#   Automatic generation of secure RPC passwords
-#
 # ------------------------------------------------------------------------------
