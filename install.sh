@@ -42,7 +42,6 @@ declare MN_ALIAS
 declare MN_PRIV_KEY
 declare COLLATERAL_OUTPUT_TXID
 declare COLLATERAL_OUTPUT_INDEX
-MASTERNODE_CONF="$MN_ALIAS $PUBLIC_IP:$P2P_PORT $MN_PRIV_KEY $COLLATERAL_OUTPUT_TXID $COLLATERAL_OUTPUT_INDEX"
 LOCAL_WALLET_CONF="rpcuser=$RPCUSER\nrpcpassword=$RPCPASSWORD\nrpcallowip=127.0.0.1\nlisten=0\nserver=1\ndaemon=1\nlogtimestamps=1\nmaxconnections=256"
 DAEMON_SERVICE="[Unit]\nDescription=$PROJECT_NAME daemon\nAfter=network.target\n\n[Service]\nExecStart=/usr/local/bin/$DAEMON_BINARY --daemon --conf=$WALLET_LOCATION/$PROJECT_NAME.conf -pid=/run/$DAEMON_BINARY/$DAEMON_BINARY.pid\nRuntimeDirectory=$DAEMON_BINARY\nUser=$LINUX_USER\nType=forking\nWorkingDirectory=$WALLET_LOCATION\nPIDFile=/run/$DAEMON_BINARY/$DAEMON_BINARY.pid\nRestart=on-failure\n\nPrivateTmp=true\nProtectSystem=full\nNoNewPrivileges=true\nPrivateDevices=true\nMemoryDenyWriteExecute=true\n\n[Install]\nWantedBy=multi-user.target"
 declare -a BASE_PKGS=(\
@@ -81,12 +80,16 @@ stfu() {
 
 # Use 'copy_text "text to display"'
 text_to_copy() {
-    echo "# ===========Copy text AFTER this line==========="
-    echo "$@"
-    echo "# ===========Copy text BEFORE this line==========="
+	clear
+	echo
+	echo
+    echo "# ===========Start copy text AFTER this line==========="
+    echo -e "$@"
+    echo "# ===========Stop copy text BEFORE this line==========="
     echo
     echo
     read -n 1 -s -r -p "Press any key to continue..."
+    clear
 }
 
 # Use 'user_in_group user group'
@@ -96,8 +99,9 @@ user_in_group() {
 
 # infobox TEXT
 infobox() {
+    BASE_LINES=8
     WT_HEIGHT=$(echo -e "$@" | wc -l)
-    (( WT_HEIGHT=WT_HEIGHT+7 ))
+    (( WT_HEIGHT=WT_HEIGHT+BASE_LINES ))
     WT_WIDTH=78
     WT_SIZE="$WT_HEIGHT $WT_WIDTH"
     TERM=ansi whiptail \
@@ -109,8 +113,9 @@ infobox() {
 
 # msgbox TEXT
 msgbox() {
+    BASE_LINES=8
     WT_HEIGHT=$(echo -e "$@" | wc -l)
-    (( WT_HEIGHT=WT_HEIGHT+6 ))
+    (( WT_HEIGHT=WT_HEIGHT+BASE_LINES ))
     WT_WIDTH=78
     WT_SIZE="$WT_HEIGHT $WT_WIDTH"
     TERM=ansi whiptail \
@@ -122,8 +127,9 @@ msgbox() {
 
 # inputbox TEXT
 inputbox() {
+    BASE_LINES=8
     WT_HEIGHT=$(echo -e "$@" | wc -l)
-    (( WT_HEIGHT=WT_HEIGHT+6 ))
+    (( WT_HEIGHT=WT_HEIGHT+BASE_LINES ))
     WT_WIDTH=78
     WT_SIZE="$WT_HEIGHT $WT_WIDTH"
     TERM=ansi whiptail \
@@ -615,14 +621,14 @@ declare -a INSTALL_OPTIONS=(
 )
 declare -A INSTALL_STEPS=(
     [installing]="Installing packages required for setup..."
-    [step0]="You will need:\n\n-A qt wallet with at least $PROJECT_STAKE coins\n-An Ubuntu 16.04 64-bit server with a static public ip."
-    [step1]="Start the qt wallet. Go to Settings?Debug console and enter the following command:\n\n\"createmasternodekey\"\n\nThe result will look something like this \"y0uRm4st3rn0depr1vatek3y\".  Enter it here"
+    [step0]="This script will walk you through the following:\n\nBase server install\n- Setting a hostname\n- Create swap space for a low ram vps\n- Add a non-root user\n- Configure automatic security updates for Ubuntu\n- Install and configure UFW Firewall\n - Allow all outbound traffic\n - Deny all inbound traffic\n - Allow inbound P2P for Masternode and SSH\n - Whitelist installer ip address\n- Install and configure Fail2Ban IDS\n - Autoblock repeat offenders from public blacklist\n- Harden SSH security\n- Change SSH from port 22\n - Disable root logon\n - Require ssh-keys\n\nMasternode install\n- Prompted install\n- Automatically detect Client and Host ip addresses\n- Automatically generate RPC User and secure password.\n\nYou will need:\n- A QT wallet with at least $PROJECT_STAKE coins and to know how to copy/paste."
+    [step1]="Start the qt wallet.\n - Go to Settings->Debug console and paste the following command:\n\ncreatemasternodekey\n\nThe result will look something like this \"y0uRm4st3rn0depr1vatek3y\".  Enter it here"
     [step2]="Choose an alias for your masternode, for example MN1, then enter it here"
-    [step3]="While still in the Debug console type the following command to get a public address to send the stake to:\n\n\"getaccountaddress $MN_ALIAS\"\n\nThe result will look similar to this \"mA7fXSTe23RNoD83Esx6or4uYLxLqunDm5\".  Send exactly $PROJECT_STAKE HASH to that address making sure that any tx fee is covered."
-    [step4]="Back in the Debug console Execute the command:\n\n\"masternode outputs\"\n\nThis will output TX and output pairs of numbers, for example:\n\"{\n\"a9b31238d062ccb5f4b1eb6c3041d369cc014f5e6df38d2d303d791acd4302f2\": \"0\"\n}\"\nEnter just the first number, long number, here and the second number in the next screen."
-    [step5]="Enter the second, single digit number from the previous step (usually \"0\" here."
-    [step6]="Open the masternode.conf file via the menu Tools->Open Masternode Configuration File. Without any blank lines type in a space-delimited single line paste the string that will appear on the next screen then save and close the file."
-    [step7]="Open the bash.conf file via the menu Tools->Open Wallet Configuration File and paste the lines that will appear on the next screen then save and close the file"
+    [step3]="While still in the Debug console type the following command to get a public address to send the stake to:\n\ngetaccountaddress ${MN_ALIAS}\n\nThe result will look similar to this \"mA7fXSTe23RNoD83Esx6or4uYLxLqunDm5\".  Send exactly $PROJECT_STAKE HASH to that address making sure that any tx fee is covered."
+    [step4]="Back in the Debug console Execute the command:\n\nmasternode outputs\n\nThis will output TX and output pairs of numbers, for example:\n{\n\"a9b31238d062ccb5f4b1eb6c3041d369cc014f5e6df38d2d303d791acd4302f2\": \"0\"\n}\nPaste just the first, long, number without any punctuation, here and the second number in the next screen."
+    [step5]="Enter the second, single digit number from the previous step (usually 0 or 1) here."
+    [step6]="On the QT wallet, open the masternode.conf file via the menu Tools->Open Masternode Configuration File.\n\nPaste the string that will appear on the next screen then save and close the file."
+    [step7]="On the QT wallet, open the bash.conf file via the menu Tools->Open Wallet Configuration File.\n\nPaste the lines that will appear on the next screen then save and close the file"
     [step8]="Installing binaries to /usr/local/bin..."
     [step9]="Creating configs in $WALLET_LOCATION..."
     [step10]="Creating and installing the $PROJECT_NAME systemd service..."
@@ -641,23 +647,24 @@ install_packages
 # Install Steps
 # ==============================================================================
 msgbox "${INSTALL_STEPS[step0]}"
-MN_PRIV_KEY=$(inputbox ${INSTALL_STEPS[step1]})
-MN_ALIAS=$(inputbox ${INSTALL_STEPS[step2]})
+MN_PRIV_KEY=$(inputbox "${INSTALL_STEPS[step1]}")
+MN_ALIAS=$(inputbox "${INSTALL_STEPS[step2]}")
     # note:  --default-item is not working here.  need fix.
-msgbox ${INSTALL_STEPS[step3]}
-COLLATERAL_OUTPUT_TXID=$(inputbox ${INSTALL_STEPS[step4]})
-COLLATERAL_OUTPUT_INDEX=$(inputbox ${INSTALL_STEPS[step5]})
-msgbox ${INSTALL_STEPS[step6]}
+msgbox "${INSTALL_STEPS[step3]}"
+COLLATERAL_OUTPUT_TXID=$(inputbox "${INSTALL_STEPS[step4]}")
+COLLATERAL_OUTPUT_INDEX=$(inputbox "${INSTALL_STEPS[step5]}")
+msgbox "${INSTALL_STEPS[step6]}"
+	MASTERNODE_CONF="$MN_ALIAS $PUBLIC_IP:$P2P_PORT $MN_PRIV_KEY $COLLATERAL_OUTPUT_TXID $COLLATERAL_OUTPUT_INDEX"
     text_to_copy $MASTERNODE_CONF
-msgbox ${INSTALL_STEPS[step7]}
+msgbox "${INSTALL_STEPS[step7]}"
     text_to_copy $LOCAL_WALLET_CONF
-msgbox ${INSTALL_STEPS[step8]}
+msgbox "${INSTALL_STEPS[step8]}"
     download_binaries $PROJECT_NAME $PROJECT_GITHUB_REPO
-infobox ${INSTALL_STEPS[step9]}
+infobox "${INSTALL_STEPS[step9]}"
     wallet_configs
-infobox ${INSTALL_STEPS[step10]}
+infobox "${INSTALL_STEPS[step10]}"
     daemon_service
-msgbox ${INSTALL_STEPS[step11]}
+msgbox "${INSTALL_STEPS[step11]}"
 # ==============================================================================
 # Display logo
 # ==============================================================================
