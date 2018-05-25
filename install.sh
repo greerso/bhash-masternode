@@ -588,6 +588,7 @@ chown -R $LINUX_USER $WALLET_LOCATION
 }
 
 daemon_service() {
+DAEMON_SERVICE=$(echo -e $DAEMON_SERVICE)
 cat <<EOF > /etc/systemd/system/$DAEMON_BINARY.service
 $DAEMON_SERVICE
 EOF
@@ -633,6 +634,7 @@ declare -A INSTALL_STEPS=(
 # ------------------------------------------------------------------------------
 
 # ==============================================================================
+msgbox "${INSTALL_STEPS[step0]}"
 WT_TITLE="Installing dependencies..."
 infobox "${INSTALL_STEPS[installing]}"
 # ==============================================================================
@@ -654,7 +656,6 @@ setup_fail2ban
 # ==============================================================================
 # Install Steps
 # ==============================================================================
-msgbox "${INSTALL_STEPS[step0]}"
 MN_PRIV_KEY=$(inputbox "${INSTALL_STEPS[step1]}")
 MN_ALIAS=$(inputbox "${INSTALL_STEPS[step2]}")
     # note:  --default-item is not working here.  need fix.
