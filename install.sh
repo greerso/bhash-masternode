@@ -14,9 +14,9 @@
 # Variables
 # ==============================================================================
 # Project Specific
-	PROJECT_NAME="bhash"
-	PROJECT_GITHUB_REPO="bhashcoin/bhash"
-	PROJECT_STAKE=2000
+    PROJECT_NAME="bhash"
+    PROJECT_GITHUB_REPO="bhashcoin/bhash"
+    PROJECT_STAKE=2000
 #
 export NEWT_COLORS=''
 RPCUSER="${PROJECT_NAME}_user"
@@ -46,27 +46,27 @@ MASTERNODE_CONF="$MN_ALIAS $PUBLIC_IP:$P2P_PORT $MN_PRIV_KEY $COLLATERAL_OUTPUT_
 LOCAL_WALLET_CONF="rpcuser=$RPCUSER\nrpcpassword=$RPCPASSWORD\nrpcallowip=127.0.0.1\nlisten=0\nserver=1\ndaemon=1\nlogtimestamps=1\nmaxconnections=256"
 DAEMON_SERVICE="[Unit]\nDescription=$PROJECT_NAME daemon\nAfter=network.target\n\n[Service]\nExecStart=/usr/local/bin/$DAEMON_BINARY --daemon --conf=$WALLET_LOCATION/$PROJECT_NAME.conf -pid=/run/$DAEMON_BINARY/$DAEMON_BINARY.pid\nRuntimeDirectory=$DAEMON_BINARY\nUser=$LINUX_USER\nType=forking\nWorkingDirectory=$WALLET_LOCATION\nPIDFile=/run/$DAEMON_BINARY/$DAEMON_BINARY.pid\nRestart=on-failure\n\nPrivateTmp=true\nProtectSystem=full\nNoNewPrivileges=true\nPrivateDevices=true\nMemoryDenyWriteExecute=true\n\n[Install]\nWantedBy=multi-user.target"
 declare -a BASE_PKGS=(\
-	apt-transport-https \
-	ca-certificates \
-	curl \
-	htop \
-	jq \
-	libevent-dev \
-	lsb-release \
-	software-properties-common \
-	unzip \
-	wget)
+    apt-transport-https \
+    ca-certificates \
+    curl \
+    htop \
+    jq \
+    libevent-dev \
+    lsb-release \
+    software-properties-common \
+    unzip \
+    wget)
 declare -a PROJECT_PKGS=(\
-	libboost-system-dev \
-	libboost-filesystem-dev \
-	libboost-chrono-dev \
-	libboost-program-options-dev \
-	libboost-test-dev \
-	libboost-thread-dev \
-	libdb-dev \
-	libdb++-dev
-	libzmq3-dev \
-	libminiupnpc-dev)
+    libboost-system-dev \
+    libboost-filesystem-dev \
+    libboost-chrono-dev \
+    libboost-program-options-dev \
+    libboost-test-dev \
+    libboost-thread-dev \
+    libdb-dev \
+    libdb++-dev
+    libzmq3-dev \
+    libminiupnpc-dev)
 # ------------------------------------------------------------------------------
 
 # ==============================================================================
@@ -96,64 +96,64 @@ user_in_group() {
 
 # infobox TEXT
 infobox() {
-	WT_HEIGHT=$(echo -e "$@" | wc -l)
-	(( WT_HEIGHT=WT_HEIGHT+7 ))
-	WT_WIDTH=78
-	WT_SIZE="$WT_HEIGHT $WT_WIDTH"
-	TERM=ansi whiptail \
-	--infobox "$@" \
-	--backtitle "$WT_BACKTITLE" \
-	--title "$WT_TITLE" \
-	$WT_SIZE
+    WT_HEIGHT=$(echo -e "$@" | wc -l)
+    (( WT_HEIGHT=WT_HEIGHT+7 ))
+    WT_WIDTH=78
+    WT_SIZE="$WT_HEIGHT $WT_WIDTH"
+    TERM=ansi whiptail \
+    --infobox "$@" \
+    --backtitle "$WT_BACKTITLE" \
+    --title "$WT_TITLE" \
+    $WT_SIZE
 }
 
 # msgbox TEXT
 msgbox() {
-	WT_HEIGHT=$(echo -e "$@" | wc -l)
-	(( WT_HEIGHT=WT_HEIGHT+6 ))
-	WT_WIDTH=78
-	WT_SIZE="$WT_HEIGHT $WT_WIDTH"
-	TERM=ansi whiptail \
-	--msgbox "$@" \
-	--backtitle "$WT_BACKTITLE" \
-	--title "$WT_TITLE" \
-	$WT_SIZE
+    WT_HEIGHT=$(echo -e "$@" | wc -l)
+    (( WT_HEIGHT=WT_HEIGHT+6 ))
+    WT_WIDTH=78
+    WT_SIZE="$WT_HEIGHT $WT_WIDTH"
+    TERM=ansi whiptail \
+    --msgbox "$@" \
+    --backtitle "$WT_BACKTITLE" \
+    --title "$WT_TITLE" \
+    $WT_SIZE
 }
 
 # inputbox TEXT
 inputbox() {
-	WT_HEIGHT=$(echo -e "$@" | wc -l)
-	(( WT_HEIGHT=WT_HEIGHT+6 ))
-	WT_WIDTH=78
-	WT_SIZE="$WT_HEIGHT $WT_WIDTH"
-	TERM=ansi whiptail \
-	--inputbox "$@" \
-	--backtitle "$WT_BACKTITLE" \
-	--title "$WT_TITLE" \
-	--nocancel \
-	3>&1 1>&2 2>&3 \
-	$WT_SIZE
+    WT_HEIGHT=$(echo -e "$@" | wc -l)
+    (( WT_HEIGHT=WT_HEIGHT+6 ))
+    WT_WIDTH=78
+    WT_SIZE="$WT_HEIGHT $WT_WIDTH"
+    TERM=ansi whiptail \
+    --inputbox "$@" \
+    --backtitle "$WT_BACKTITLE" \
+    --title "$WT_TITLE" \
+    --nocancel \
+    3>&1 1>&2 2>&3 \
+    $WT_SIZE
 }
 
 pre_checks() {
-	UBUNTU_VER=$(lsb_release -rs)
-	if [[ $UBUNTU_VER != 16.04 ]]; then
-	msgbox "Ubuntu 16.04 is required, you have $UBUNTU_VER.  Exiting..."
-	exit 1
-	fi
+    UBUNTU_VER=$(lsb_release -rs)
+    if [[ $UBUNTU_VER != 16.04 ]]; then
+    msgbox "Ubuntu 16.04 is required, you have $UBUNTU_VER.  Exiting..."
+    exit 1
+    fi
 
-	if [ "$(id -nu)" != "root" ]; then
-	sudo -k
-	password=$(whiptail --backtitle "$PROJECT_NAME Masternode Installer" --title "Authentication required" --passwordbox "Installing $PROJECT_NAME requires root privilege. Please authenticate to begin the installation.\n\n[sudo] Password for user $USER:" 12 50 3>&2 2>&1 1>&3-)
-	exec sudo -S -p '' "$0" "$@" <<< "$password"
-	exit 1
-	fi
+    if [ "$(id -nu)" != "root" ]; then
+    sudo -k
+    password=$(whiptail --backtitle "$PROJECT_NAME Masternode Installer" --title "Authentication required" --passwordbox "Installing $PROJECT_NAME requires root privilege. Please authenticate to begin the installation.\n\n[sudo] Password for user $USER:" 12 50 3>&2 2>&1 1>&3-)
+    exec sudo -S -p '' "$0" "$@" <<< "$password"
+    exit 1
+    fi
 
-	if [ -n "$(pidof $DAEMON_BINARY)" ]; then
-	msgbox "The $PROJECT_NAME daemon is already running."
-	# check for updates
-	exit 1
-	fi
+    if [ -n "$(pidof $DAEMON_BINARY)" ]; then
+    msgbox "The $PROJECT_NAME daemon is already running."
+    # check for updates
+    exit 1
+    fi
 }
 
 # install_packages from BASE_PKGS and PROJECT_PKGS array variables in addition to any other packages specified
@@ -170,118 +170,121 @@ aptitude -yq3 install ${PROJECT_PKGS[@]}
 # stfu add-apt-repository -y ppa:bitcoin/bitcoin
 # stfu apt update
 # stfu aptitude -yq3 install \
-#	libdb4.8-dev \
-#	libdb4.8++-dev
+#   libdb4.8-dev \
+#   libdb4.8++-dev
 }
 
 change_hostname() {
-    inputbox "Your hostname is $Hostname,  please enter a new hostname then press ok."
-        sed -i "s|$Hostname|$newHostname|1" /etc/hostname
-        if grep -q "$Hostname" /etc/hosts; then
-            sed -i "s|$Hostname|$newHostname|1" /etc/hosts
-        else
-            echo "127.0.0.1 $newHostname" >> /etc/hosts
-        fi
-    esac
+if [ -z "$1" ]; then
+newHostname=$(inputbox "Your hostname is $Hostname,  please enter a new hostname then press ok.")
+else
+newHostname="$1"
+fi
+sed -i "s|$Hostname|$newHostname|1" /etc/hostname
+if grep -q "$Hostname" /etc/hosts; then
+sed -i "s|$Hostname|$newHostname|1" /etc/hosts
+else
+echo "127.0.0.1 $newHostname" >> /etc/hosts
+fi
 }
 
 create_swap() {
-	TOTAL_MEM=$(free -m | awk '/^Mem:/{print $2}')
-	TOTAL_SWP=$(free -m | awk '/^Swap:/{print $2}')
-	TOTAL_M=$(($TOTAL_MEM + $TOTAL_SWP))
-	if [ $TOTAL_M -lt 4000 ]; then
-		if ! grep -q '/swapfile' /etc/fstab ; then
-			fallocate -l 4G /swapfile
-			chmod 600 /swapfile
-			mkswap /swapfile
-			swapon /swapfile
-			echo '/swapfile none swap sw 0 0' >> /etc/fstab
-		fi
-	fi
+TOTAL_MEM=$(free -m | awk '/^Mem:/{print $2}')
+TOTAL_SWP=$(free -m | awk '/^Swap:/{print $2}')
+TOTAL_M=$(($TOTAL_MEM + $TOTAL_SWP))
+if [ $TOTAL_M -lt 4000 ]; then
+if ! grep -q '/swapfile' /etc/fstab ; then
+fallocate -l 4G /swapfile
+chmod 600 /swapfile
+mkswap /swapfile
+swapon /swapfile
+echo '/swapfile none swap sw 0 0' >> /etc/fstab
+fi
+fi
 }
 
 create_user() {
-	USERNAME=$(inputbox "Please enter the new user name")
-	USER_PASSWORD=$(inputbox "Please enter a password for \'${USERNAME}\'")
-	adduser --gecos "" --disabled-password --quiet "$USERNAME"
-	echo "$USERNAME:$USER_PASSWORD" | chpasswd
-	# Add user to sudoers
-	usermod -a -G sudo "$USERNAME"
-	LINUX_USER=$USERNAME
-	WALLET_LOCATION="$(eval echo "~$USERNAME")/.${PROJECT_NAME}"
-	# add option to ask instead of adding to sudoers by default
-	# add a loop to add more users	
+if [ -z "$1" ]; then
+USERNAME=$(inputbox "Please enter the new user name")
+else
+USERNAME=$1
+fi
+USER_PASSWORD=$(inputbox "Please enter a password for \'${USERNAME}\'")
+adduser --gecos "" --disabled-password --quiet "$USERNAME"
+echo "$USERNAME:$USER_PASSWORD" | chpasswd
+# Add user to sudoers
+usermod -a -G sudo "$USERNAME"
+LINUX_USER=$USERNAME
+WALLET_LOCATION="$(eval echo "~$USERNAME")/.${PROJECT_NAME}"
+# add option to ask instead of adding to sudoers by default
+# add a loop to add more users  
 }
 
 unattended-upgrades() {
-	apt-get -y install unattended-upgrades >/dev/null 2>&1
-	autoUpdateCommands=(
-	    's|\"\${distro_id}:\${distro_codename}\";|// \"\${distro_id}:\${distro_codename}\";|'
-	    's|\"\${distro_id}ESM:\${distro_codename}\";|// \"\${distro_id}ESM:\${distro_codename}\";|'
-		)
-
-	for autoUpdateCommand in "${autoUpdateCommands[@]}"; do
-	    sed -i "$autoUpdateCommand" /etc/apt/apt.conf.d/50unattended-upgrades
-	done
-		
-	if grep -q "APT::Periodic::Unattended-Upgrade \"1\" ;" /etc/apt/apt.conf.d/10periodic; then
-		:
-	else
-	    echo "APT::Periodic::Unattended-Upgrade \"1\" ;" >> /etc/apt/apt.conf.d/10periodic
-	fi
+apt-get -y install unattended-upgrades >/dev/null 2>&1
+autoUpdateCommands=(
+'s|\"\${distro_id}:\${distro_codename}\";|// \"\${distro_id}:\${distro_codename}\";|'
+'s|\"\${distro_id}ESM:\${distro_codename}\";|// \"\${distro_id}ESM:\${distro_codename}\";|'
+)
+for autoUpdateCommand in "${autoUpdateCommands[@]}"; do
+sed -i "$autoUpdateCommand" /etc/apt/apt.conf.d/50unattended-upgrades
+done
+if ! grep -q "APT::Periodic::Unattended-Upgrade \"1\" ;" /etc/apt/apt.conf.d/10periodic; then
+echo "APT::Periodic::Unattended-Upgrade \"1\" ;" >> /etc/apt/apt.conf.d/10periodic
+fi
 }
 
 harden_ssh() {
-	# Set ssh port
-	SSH_PORT=$(cat /etc/ssh/sshd_config | grep Port | awk '{print $2}')
-	if [ $SSH_PORT -eq 22 ] ; then
-		NEW_SSH_PORT=$(inputbox "SSH is currently running on $NEW_SSH_PORT.  Botnets scan are constantly scanning this port.  Enter a new port or press enter to accept port 2222" )
-	fi
-	if grep -q Port /etc/ssh/sshd_config; then
-	    sed -ri "s|(^(.{0,2})Port)( *)?(.*)|Port $NEW_SSH_PORT|1" /etc/ssh/sshd_config
-	else
-	    echo "Port $NEW_SSH_PORT" >> /etc/ssh/sshd_config
-	fi
-	# Disable root user ssh login
-	# Make sure that you have a normal user before doing this
-	if grep -q PermitRootLogin /etc/ssh/sshd_config; then
-	    sed -ri "s|(^(.{0,2})PermitRootLogin)( *)?(.*)|PermitRootLogin no|1" /etc/ssh/sshd_config
-	else
-	    echo "PermitRootLogin no" >> /etc/ssh/sshd_config
-	fi
-	# Disable the use of passwords with ssh
-	# Add ssh-key for remote user to LINUX_USER .ssh/allowed_keys
-	if grep -q PasswordAuthentication /etc/ssh/sshd_config; then
-	    sed -ri "s|(^(.{0,2})PasswordAuthentication)( *)?(.*)|PasswordAuthentication no|1" /etc/ssh/sshd_config
-	else
-	    echo "PasswordAuthentication no" >> /etc/ssh/sshd_config
-	fi
-	# Restart the ssh daemon
-	systemctl restart sshd
+# Set ssh port
+SSH_PORT=$(cat /etc/ssh/sshd_config | grep Port | awk '{print $2}')
+if [ $SSH_PORT -eq 22 ] ; then
+NEW_SSH_PORT=$(inputbox "SSH is currently running on $NEW_SSH_PORT.  Botnets scan are constantly scanning this port.  Enter a new port or press enter to accept port 2222" )
+fi
+if grep -q Port /etc/ssh/sshd_config; then
+sed -ri "s|(^(.{0,2})Port)( *)?(.*)|Port $NEW_SSH_PORT|1" /etc/ssh/sshd_config
+else
+echo "Port $NEW_SSH_PORT" >> /etc/ssh/sshd_config
+fi
+# Disable root user ssh login
+# Make sure that you have a normal user before doing this
+if grep -q PermitRootLogin /etc/ssh/sshd_config; then
+sed -ri "s|(^(.{0,2})PermitRootLogin)( *)?(.*)|PermitRootLogin no|1" /etc/ssh/sshd_config
+else
+echo "PermitRootLogin no" >> /etc/ssh/sshd_config
+fi
+# Disable the use of passwords with ssh
+# Add ssh-key for remote user to LINUX_USER .ssh/allowed_keys
+if grep -q PasswordAuthentication /etc/ssh/sshd_config; then
+sed -ri "s|(^(.{0,2})PasswordAuthentication)( *)?(.*)|PasswordAuthentication no|1" /etc/ssh/sshd_config
+else
+echo "PasswordAuthentication no" >> /etc/ssh/sshd_config
+fi
+# Restart the ssh daemon
+systemctl restart sshd
 }
 
 setup_ufw() {
-	SSH_PORT=$(cat /etc/ssh/sshd_config | grep Port | awk '{print $2}')
-	ALLOWED_PORTS=[$@]
-	REMOTE_IP=$(echo -e $SSH_CLIENT | awk '{ print $1}')
-	
-	if [ -f /etc/ufw/ufw.conf ]; then
-		:
-	    # echo "ufw already exists!"
-	    # exit $?
-	    else apt-get -y install ufw
-	fi
-	
-	# Open all outgoing ports, block all incoming ports then open port $SSH_PORT for ssh.
-	ufw default allow outgoing
-	ufw default deny incoming
-	
-	# Open ports
-	ufw allow $SSH_PORT/tcp comment 'ssh port'
-	# allow $ALLOWED_PORTS
-	# allow all ports from $REMOTE_IP
-	# Enable the firewall
-	ufw enable
+    SSH_PORT=$(cat /etc/ssh/sshd_config | grep Port | awk '{print $2}')
+    ALLOWED_PORTS=[$@]
+    REMOTE_IP=$(echo -e $SSH_CLIENT | awk '{ print $1}')
+    
+    if [ -f /etc/ufw/ufw.conf ]; then
+        :
+        # echo "ufw already exists!"
+        # exit $?
+        else apt-get -y install ufw
+    fi
+    
+    # Open all outgoing ports, block all incoming ports then open port $SSH_PORT for ssh.
+    ufw default allow outgoing
+    ufw default deny incoming
+    
+    # Open ports
+    ufw allow $SSH_PORT/tcp comment 'ssh port'
+    # allow $ALLOWED_PORTS
+    # allow all ports from $REMOTE_IP
+    # Enable the firewall
+    ufw enable
 }
 
 setup_fail2ban() {
@@ -564,31 +567,31 @@ fi
 
 # download_binaries PROJECT_NAME PROJECT_GITHUB_REPO
 download_binaries() {
-	PROJECT_NAME=$1
-	PROJECT_GITHUB_REPO=$2
-	${PROJECT_NAME}_URL=$(curl -s https://api.github.com/repos/${PROJECT_GITHUB_REPO}/releases/latest | jq -r ".assets[] | select(.name | test(\"${PROJECT_NAME}_OS\")) | .browser_download_url")
-	curl -sSL "${PROJECT_NAME}_URL" | tar xvz -C /usr/local/bin/
+    PROJECT_NAME=$1
+    PROJECT_GITHUB_REPO=$2
+    ${PROJECT_NAME}_URL=$(curl -s https://api.github.com/repos/${PROJECT_GITHUB_REPO}/releases/latest | jq -r ".assets[] | select(.name | test(\"${PROJECT_NAME}_OS\")) | .browser_download_url")
+    curl -sSL "${PROJECT_NAME}_URL" | tar xvz -C /usr/local/bin/
 
 }
 
 wallet_configs() {
-	mkdir -p $WALLET_LOCATION
-	cat <<EOF > $WALLET_LOCATION/masternode.conf
-	$MASTERNODE_CONF
-	EOF
-	SERVER_WALLET_CONF=$(echo -e $SERVER_WALLET_CONF)
-	cat <<EOF > $WALLET_LOCATION/$PROJECT_NAME.conf
-	EOF
-	stfu chown -R $LINUX_USER $WALLET_LOCATION
+    mkdir -p $WALLET_LOCATION
+    cat <<EOF > $WALLET_LOCATION/masternode.conf
+    $MASTERNODE_CONF
+    EOF
+    SERVER_WALLET_CONF=$(echo -e $SERVER_WALLET_CONF)
+    cat <<EOF > $WALLET_LOCATION/$PROJECT_NAME.conf
+    EOF
+    stfu chown -R $LINUX_USER $WALLET_LOCATION
 }
 
 daemon_service() {
-	cat <<EOF > /etc/systemd/system/$DAEMON_BINARY.service
-	$DAEMON_SERVICE
-	EOF
-	systemctl daemon-reload
-	systemctl enable $DAEMON_BINARY
-	systemctl restart $DAEMON_BINARY
+cat <<EOF > /etc/systemd/system/$DAEMON_BINARY.service
+$DAEMON_SERVICE
+EOF
+systemctl daemon-reload
+systemctl enable $DAEMON_BINARY
+systemctl restart $DAEMON_BINARY
 }
 # ------------------------------------------------------------------------------
 
@@ -602,34 +605,34 @@ pre_checks
 # Setup dialogs
 # ==============================================================================
 declare -a INSTALL_OPTIONS=(
-	"Change Hostame"
-	"Create Swap for low ram vps"
-	"Add non-root user"
-	"Automatic security updates"
-	"Install and configure UFW Firewall"
-	"Install and configure Fail2Ban IDS"
-	"Harden SSH security"
+    "Change Hostame"
+    "Create Swap for low ram vps"
+    "Add non-root user"
+    "Automatic security updates"
+    "Install and configure UFW Firewall"
+    "Install and configure Fail2Ban IDS"
+    "Harden SSH security"
 )
 declare -A INSTALL_STEPS=(
-	[installing]="Installing packages required for setup..."
-	[step0]="You will need:\n\n-A qt wallet with at least $PROJECT_STAKE coins\n-An Ubuntu 16.04 64-bit server with a static public ip."
-	[step1]="Start the qt wallet. Go to Settings?Debug console and enter the following command:\n\n\"createmasternodekey\"\n\nThe result will look something like this \"y0uRm4st3rn0depr1vatek3y\".  Enter it here"
-	[step2]="Choose an alias for your masternode, for example MN1, then enter it here"
-	[step3]="While still in the Debug console type the following command to get a public address to send the stake to:\n\n\"getaccountaddress $MN_ALIAS\"\n\nThe result will look similar to this \"mA7fXSTe23RNoD83Esx6or4uYLxLqunDm5\".  Send exactly $PROJECT_STAKE HASH to that address making sure that any tx fee is covered."
-	[step4]="Back in the Debug console Execute the command:\n\n\"masternode outputs\"\n\nThis will output TX and output pairs of numbers, for example:\n\"{\n\"a9b31238d062ccb5f4b1eb6c3041d369cc014f5e6df38d2d303d791acd4302f2\": \"0\"\n}\"\nEnter just the first number, long number, here and the second number in the next screen."
-	[step5]="Enter the second, single digit number from the previous step (usually \"0\" here."
-	[step6]="Open the masternode.conf file via the menu Tools->Open Masternode Configuration File. Without any blank lines type in a space-delimited single line paste the string that will appear on the next screen then save and close the file."
-	[step7]="Open the bash.conf file via the menu Tools->Open Wallet Configuration File and paste the lines that will appear on the next screen then save and close the file"
-	[step8]="Installing binaries to /usr/local/bin..."
-	[step9]="Creating configs in $WALLET_LOCATION..."
-	[step10]="Creating and installing the $PROJECT_NAME systemd service..."
-	[step11]="Restart the wallet.  You should see your Masternode listed in the Masternodes tab.\n\nIf you get errors, you may have made a mistake in either the $PROJECT_NAME.conf or masternodes.conf files.\n\nUse the buttons to start your alias.  It may take up to 24 hours for your masternode to fully propagate"
+    [installing]="Installing packages required for setup..."
+    [step0]="You will need:\n\n-A qt wallet with at least $PROJECT_STAKE coins\n-An Ubuntu 16.04 64-bit server with a static public ip."
+    [step1]="Start the qt wallet. Go to Settings?Debug console and enter the following command:\n\n\"createmasternodekey\"\n\nThe result will look something like this \"y0uRm4st3rn0depr1vatek3y\".  Enter it here"
+    [step2]="Choose an alias for your masternode, for example MN1, then enter it here"
+    [step3]="While still in the Debug console type the following command to get a public address to send the stake to:\n\n\"getaccountaddress $MN_ALIAS\"\n\nThe result will look similar to this \"mA7fXSTe23RNoD83Esx6or4uYLxLqunDm5\".  Send exactly $PROJECT_STAKE HASH to that address making sure that any tx fee is covered."
+    [step4]="Back in the Debug console Execute the command:\n\n\"masternode outputs\"\n\nThis will output TX and output pairs of numbers, for example:\n\"{\n\"a9b31238d062ccb5f4b1eb6c3041d369cc014f5e6df38d2d303d791acd4302f2\": \"0\"\n}\"\nEnter just the first number, long number, here and the second number in the next screen."
+    [step5]="Enter the second, single digit number from the previous step (usually \"0\" here."
+    [step6]="Open the masternode.conf file via the menu Tools->Open Masternode Configuration File. Without any blank lines type in a space-delimited single line paste the string that will appear on the next screen then save and close the file."
+    [step7]="Open the bash.conf file via the menu Tools->Open Wallet Configuration File and paste the lines that will appear on the next screen then save and close the file"
+    [step8]="Installing binaries to /usr/local/bin..."
+    [step9]="Creating configs in $WALLET_LOCATION..."
+    [step10]="Creating and installing the $PROJECT_NAME systemd service..."
+    [step11]="Restart the wallet.  You should see your Masternode listed in the Masternodes tab.\n\nIf you get errors, you may have made a mistake in either the $PROJECT_NAME.conf or masternodes.conf files.\n\nUse the buttons to start your alias.  It may take up to 24 hours for your masternode to fully propagate"
 )
 # ------------------------------------------------------------------------------
 
 # ==============================================================================
 WT_TITLE="Installing dependencies..."
-infobox "$installing"
+infobox "${INSTALL_STEPS[installing]}"
 # ==============================================================================
 install_packages
 # ------------------------------------------------------------------------------
@@ -637,24 +640,24 @@ install_packages
 # ==============================================================================
 # Install Steps
 # ==============================================================================
-msgbox $step0
-MN_PRIV_KEY=$(inputbox $step1)
-MN_ALIAS=$(inputbox $step2)
-	# note:  --default-item is not working here.  need fix.
-msgbox $step3
-COLLATERAL_OUTPUT_TXID=$(inputbox $step4)
-COLLATERAL_OUTPUT_INDEX=$(inputbox $step5)
-msgbox $step6
-	text_to_copy $MASTERNODE_CONF
-msgbox $step7
-	text_to_copy $LOCAL_WALLET_CONF
-msgbox $step8
-	download_binaries $PROJECT_NAME $PROJECT_GITHUB_REPO
-infobox $step9
-	wallet_configs
-infobox $step10
-	daemon_service
-msgbox $step11
+msgbox "${INSTALL_STEPS[step0]}"
+MN_PRIV_KEY=$(inputbox ${INSTALL_STEPS[step1]})
+MN_ALIAS=$(inputbox ${INSTALL_STEPS[step2]})
+    # note:  --default-item is not working here.  need fix.
+msgbox ${INSTALL_STEPS[step3]}
+COLLATERAL_OUTPUT_TXID=$(inputbox ${INSTALL_STEPS[step4]})
+COLLATERAL_OUTPUT_INDEX=$(inputbox ${INSTALL_STEPS[step5]})
+msgbox ${INSTALL_STEPS[step6]}
+    text_to_copy $MASTERNODE_CONF
+msgbox ${INSTALL_STEPS[step7]}
+    text_to_copy $LOCAL_WALLET_CONF
+msgbox ${INSTALL_STEPS[step8]}
+    download_binaries $PROJECT_NAME $PROJECT_GITHUB_REPO
+infobox ${INSTALL_STEPS[step9]}
+    wallet_configs
+infobox ${INSTALL_STEPS[step10]}
+    daemon_service
+msgbox ${INSTALL_STEPS[step11]}
 # ==============================================================================
 # Display logo
 # ==============================================================================
@@ -666,29 +669,29 @@ echo -e "$PROJECT_LOGO\n\nUseful commands:\n'$PROJECT_CLI masternode status'   #
 # Install Steps
 # ==============================================================================
 #Base Server Options
-#	Set Hostname
-#	Create Swap for low ram vps
-#	Add non-root user
-#	Automatic security updates
-#	Install and configure UFW Firewall
-#		Allow all outbound traffic
-#		Deny all inbound traffic
-#		Allow inbound P2P for Masternode and SSH
-#		Whitelist installer ip address
-#	Install and configure Fail2Ban IDS
-#		Email reports of hacking activity
-#		Autoblock repeat offenders from public blacklist
-#	Harden SSH security
-#		Change port 22
-#		Disable root logon
-#		Require ssh-keys
+#   Set Hostname
+#   Create Swap for low ram vps
+#   Add non-root user
+#   Automatic security updates
+#   Install and configure UFW Firewall
+#       Allow all outbound traffic
+#       Deny all inbound traffic
+#       Allow inbound P2P for Masternode and SSH
+#       Whitelist installer ip address
+#   Install and configure Fail2Ban IDS
+#       Email reports of hacking activity
+#       Autoblock repeat offenders from public blacklist
+#   Harden SSH security
+#       Change port 22
+#       Disable root logon
+#       Require ssh-keys
 ##Masternode install
-#	Check for already installed
-#		Check daemon update
-#			install update
-##	Simple Q&A process
-#	Secure install (no root user)
-#	Prompts with instructions
-#	Automatic generation of secure RPC passwords
+#   Check for already installed
+#       Check daemon update
+#           install update
+##  Simple Q&A process
+#   Secure install (no root user)
+#   Prompts with instructions
+#   Automatic generation of secure RPC passwords
 #
 # ------------------------------------------------------------------------------
