@@ -574,7 +574,7 @@ systemctl restart fail2ban
 download_binaries() {
 GITHUB_BIN_URL="$(curl -sSL https://api.github.com/repos/${PROJECT_GITHUB_REPO}/releases/latest | jq -r ".assets[] | select(.name | test(\"$GITHUB_BIN_SUFFIX\")) | .browser_download_url")"
     
-    curl -sSL "${!var}" | tar xvz -C /usr/local/bin/
+    curl -sSL "$GITHUB_BIN_URL" | tar xvz -C /usr/local/bin/
 }
 
 wallet_configs() {
