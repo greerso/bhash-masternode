@@ -610,17 +610,32 @@ pre_checks
 # Setup dialogs
 # ==============================================================================
 declare -a INSTALL_OPTIONS=(
-    "Change Hostame"
-    "Create Swap for low ram vps"
-    "Add non-root user"
-    "Automatic security updates"
-    "Install and configure UFW Firewall"
-    "Install and configure Fail2Ban IDS"
-    "Harden SSH security"
+#    "Change Hostame"
+Base server install
+#- Setting a hostname
+ - Create swap space for a low ram vps
+ - Add a non-root user
+ - Configure automatic security updates for Ubuntu
+ - Install and configure UFW Firewall
+  - Allow all outbound traffic
+  - Deny all inbound traffic
+  - Allow inbound P2P for Masternode and SSH
+  - Whitelist installer ip address
+ - Install and configure Fail2Ban IDS
+ - Autoblock repeat offenders from public blacklist
+#- Harden SSH security
+  - Change SSH from port 22
+  - Disable root logon
+  - Require ssh-keys
+
+Masternode install
+- Prompted install
+- Automatically detect Client and Host ip addresses
+- Automatically generate RPC User and secure password.
 )
 declare -A INSTALL_STEPS=(
     [installing]="Installing packages required for setup..."
-    [step0]="This script will walk you through the following:\n\nBase server install\n- Setting a hostname\n- Create swap space for a low ram vps\n- Add a non-root user\n- Configure automatic security updates for Ubuntu\n- Install and configure UFW Firewall\n - Allow all outbound traffic\n - Deny all inbound traffic\n - Allow inbound P2P for Masternode and SSH\n - Whitelist installer ip address\n- Install and configure Fail2Ban IDS\n - Autoblock repeat offenders from public blacklist\n- Harden SSH security\n- Change SSH from port 22\n - Disable root logon\n - Require ssh-keys\n\nMasternode install\n- Prompted install\n- Automatically detect Client and Host ip addresses\n- Automatically generate RPC User and secure password.\n\nYou will need:\n- A QT wallet with at least $PROJECT_STAKE coins and to know how to copy/paste."
+    [step0]="This script will walk you through the following:\n\n${INSTALL_OPTIONS}\n\nYou will need:\n- A QT wallet with at least $PROJECT_STAKE coins and to know how to copy/paste."
     [step1]="Start the qt wallet.\n - Go to Settings->Debug console and paste the following command:\n\ncreatemasternodekey\n\nThe result will look something like this \"y0uRm4st3rn0depr1vatek3y\".  Enter it here"
     [step2]="Choose an alias for your masternode, for example MN1, then enter it here"
     [step3]="While still in the Debug console type the following command to get a public address to send the stake to:\n\ngetaccountaddress ${MN_ALIAS}\n\nThe result will look similar to this \"mA7fXSTe23RNoD83Esx6or4uYLxLqunDm5\".  Send exactly $PROJECT_STAKE HASH to that address making sure that any tx fee is covered."
@@ -646,13 +661,13 @@ stfu install_packages
 # ==============================================================================
 WT_TITLE="Server Config"
 # ==============================================================================
-unattended-upgrades
-change_hostname
-create_swap
-create_user
+stfu unattended-upgrades
+# change_hostname
+stfu create_swap
+stfu create_user
 # harden_ssh #Needs work
 stfu setup_ufw
-setup_fail2ban
+stfu setup_fail2ban
 # ------------------------------------------------------------------------------
 
 # ==============================================================================
@@ -671,7 +686,7 @@ msgbox "${INSTALL_STEPS[step7]}"
 LOCAL_WALLET_CONF="rpcuser=$RPCUSER\nrpcpassword=$RPCPASSWORD\nrpcallowip=127.0.0.1\nlisten=0\nserver=1\ndaemon=1\nlogtimestamps=1\nmaxconnections=256"
     text_to_copy $LOCAL_WALLET_CONF
 infobox "${INSTALL_STEPS[step8]}"
-    download_binaries
+    stfu download_binaries
 infobox "${INSTALL_STEPS[step9]}"
 SERVER_WALLET_CONF="RPCUSER=${RPCUSER}\nRPCPASSWORD=${RPCPASSWORD}\nrpcallowip=127.0.0.1\nlisten=1\nserver=1\ndaemon=1\nlogtimestamps=1\nmaxconnections=256\nmasternode=1\nexternalip=${PUBLIC_IP}\nbind=${PUBLIC_IP}:${P2P_PORT}\nmasternodeaddr=${PUBLIC_IP}\nmasternodeprivkey=${MN_PRIV_KEY}\nmnconf=${WALLET_LOCATION}/masternode.conf\ndatadir=${WALLET_LOCATION}"
     stfu wallet_configs
