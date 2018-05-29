@@ -654,19 +654,19 @@ msgbox "${INSTALL_STEPS[step0]}"
 WT_TITLE="Installing dependencies..."
 infobox "${INSTALL_STEPS[installing]}"
 # ==============================================================================
-stfu install_packages
+ install_packages
 # ------------------------------------------------------------------------------
 
 # ==============================================================================
 WT_TITLE="Server Config"
 # ==============================================================================
-stfu unattended-upgrades
+ unattended-upgrades
 # change_hostname
-stfu create_swap
-stfu create_user
+ create_swap
+ create_user
 # harden_ssh #Needs work
-stfu setup_ufw
-stfu setup_fail2ban
+ setup_ufw
+ setup_fail2ban
 # ------------------------------------------------------------------------------
 
 # ==============================================================================
