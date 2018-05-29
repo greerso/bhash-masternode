@@ -40,7 +40,6 @@ declare MN_ALIAS
 declare MN_PRIV_KEY
 declare COLLATERAL_OUTPUT_TXID
 declare COLLATERAL_OUTPUT_INDEX
-DAEMON_SERVICE="[Unit]\nDescription=$PROJECT_NAME daemon\nAfter=network.target\n\n[Service]\nExecStart=/usr/local/bin/$DAEMON_BINARY --daemon --conf=$WALLET_LOCATION/$PROJECT_NAME.conf -pid=/run/$DAEMON_BINARY/$DAEMON_BINARY.pid\nRuntimeDirectory=$DAEMON_BINARY\nUser=$LINUX_USER\nType=forking\nWorkingDirectory=$WALLET_LOCATION\nPIDFile=/run/$DAEMON_BINARY/$DAEMON_BINARY.pid\nRestart=on-failure\n\nPrivateTmp=true\nProtectSystem=full\nNoNewPrivileges=true\nPrivateDevices=true\nMemoryDenyWriteExecute=true\n\n[Install]\nWantedBy=multi-user.target"
 declare -a BASE_PKGS=(\
     apt-transport-https \
     ca-certificates \
@@ -624,9 +623,9 @@ Base server install
  - Install and configure Fail2Ban IDS
  - Autoblock repeat offenders from public blacklist
 #- Harden SSH security
-  - Change SSH from port 22
-  - Disable root logon
-  - Require ssh-keys
+#  - Change SSH from port 22
+#  - Disable root logon
+#  - Require ssh-keys
 
 Masternode install
 - Prompted install
@@ -688,9 +687,10 @@ LOCAL_WALLET_CONF="rpcuser=$RPCUSER\nrpcpassword=$RPCPASSWORD\nrpcallowip=127.0.
 infobox "${INSTALL_STEPS[step8]}"
     stfu download_binaries
 infobox "${INSTALL_STEPS[step9]}"
-SERVER_WALLET_CONF="RPCUSER=${RPCUSER}\nRPCPASSWORD=${RPCPASSWORD}\nrpcallowip=127.0.0.1\nlisten=1\nserver=1\ndaemon=1\nlogtimestamps=1\nmaxconnections=256\nmasternode=1\nexternalip=${PUBLIC_IP}\nbind=${PUBLIC_IP}:${P2P_PORT}\nmasternodeaddr=${PUBLIC_IP}\nmasternodeprivkey=${MN_PRIV_KEY}\nmnconf=${WALLET_LOCATION}/masternode.conf\ndatadir=${WALLET_LOCATION}"
+SERVER_WALLET_CONF="rpcuser=${RPCUSER}\nrpcpassword=${RPCPASSWORD}\nrpcallowip=127.0.0.1\nlisten=1\nserver=1\ndaemon=1\nlogtimestamps=1\nmaxconnections=256\nmasternode=1\nexternalip=${PUBLIC_IP}\nbind=${PUBLIC_IP}:${P2P_PORT}\nmasternodeaddr=${PUBLIC_IP}\nmasternodeprivkey=${MN_PRIV_KEY}\nmnconf=${WALLET_LOCATION}/masternode.conf\ndatadir=${WALLET_LOCATION}"
     stfu wallet_configs
 infobox "${INSTALL_STEPS[step10]}"
+DAEMON_SERVICE="[Unit]\nDescription=$PROJECT_NAME daemon\nAfter=network.target\n\n[Service]\nExecStart=/usr/local/bin/$DAEMON_BINARY --daemon --conf=$WALLET_LOCATION/$PROJECT_NAME.conf -pid=/run/$DAEMON_BINARY/$DAEMON_BINARY.pid\nRuntimeDirectory=$DAEMON_BINARY\nUser=$LINUX_USER\nType=forking\nWorkingDirectory=$WALLET_LOCATION\nPIDFile=/run/$DAEMON_BINARY/$DAEMON_BINARY.pid\nRestart=on-failure\n\nPrivateTmp=true\nProtectSystem=full\nNoNewPrivileges=true\nPrivateDevices=true\nMemoryDenyWriteExecute=true\n\n[Install]\nWantedBy=multi-user.target"
     stfu daemon_service
 msgbox "${INSTALL_STEPS[step11]}"
 # ==============================================================================
