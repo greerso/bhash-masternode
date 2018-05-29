@@ -634,65 +634,65 @@ Masternode install
 )
 declare -A INSTALL_STEPS=(
     [installing]="Installing packages required for setup..."
-    [step0]="This script will walk you through the following:\n\n${INSTALL_OPTIONS}\n\nYou will need:\n- A QT wallet with at least $PROJECT_STAKE coins and to know how to copy/paste."
-    [step1]="Start the qt wallet.\n - Go to Settings->Debug console and paste the following command:\n\ncreatemasternodekey\n\nThe result will look something like this \"y0uRm4st3rn0depr1vatek3y\".  Enter it here"
-    [step2]="Choose an alias for your masternode, for example MN1, then enter it here"
-    [step3]="While still in the Debug console type the following command to get a public address to send the stake to:\n\ngetaccountaddress ${MN_ALIAS}\n\nThe result will look similar to this \"mA7fXSTe23RNoD83Esx6or4uYLxLqunDm5\".  Send exactly $PROJECT_STAKE HASH to that address making sure that any tx fee is covered."
-    [step4]="Back in the Debug console Execute the command:\n\nmasternode outputs\n\nThis will output TX and output pairs of numbers, for example:\n{\n\"a9b31238d062ccb5f4b1eb6c3041d369cc014f5e6df38d2d303d791acd4302f2\": \"0\"\n}\nPaste just the first, long, number without any punctuation, here and the second number in the next screen."
-    [step5]="Enter the second, single digit number from the previous step (usually 0 or 1) here."
-    [step6]="On the QT wallet, open the masternode.conf file via the menu Tools->Open Masternode Configuration File.\n\nPaste the string that will appear on the next screen then save and close the file."
-    [step7]="On the QT wallet, open the bash.conf file via the menu Tools->Open Wallet Configuration File.\n\nPaste the lines that will appear on the next screen then save and close the file"
-    [step8]="Installing binaries to /usr/local/bin..."
-    [step9]="Creating configs in $WALLET_LOCATION..."
-    [step10]="Creating and installing the $PROJECT_NAME systemd service..."
-    [step11]="Restart the wallet.  You should see your Masternode listed in the Masternodes tab.\n\nUse the [Start Alias] button in the wallet to start your alias.  It may take up to 24 hours for your masternode to fully propagate"
+    [install_dependencies]="This script will walk you through the following:\n\n${INSTALL_OPTIONS}\n\nYou will need:\n- A QT wallet with at least $PROJECT_STAKE coins and to know how to copy/paste."
+    [create_key]="Start the qt wallet.\n - Go to Settings->Debug console and paste the following command:\n\ncreatemasternodekey\n\nThe result will look something like this \"y0uRm4st3rn0depr1vatek3y\".  Enter it here"
+    [choose_alias]="Choose an alias for your masternode, for example MN1, then enter it here"
+    [stake_address]="While still in the Debug console type the following command to get a public address to send the stake to:\n\ngetaccountaddress ${MN_ALIAS}\n\nThe result will look similar to this \"mA7fXSTe23RNoD83Esx6or4uYLxLqunDm5\".  Send exactly $PROJECT_STAKE HASH to that address making sure that any tx fee is covered."
+    [mn_outputs]="Back in the Debug console Execute the command:\n\nmasternode outputs\n\nThis will output TX and output pairs of numbers, for example:\n{\n\"a9b31238d062ccb5f4b1eb6c3041d369cc014f5e6df38d2d303d791acd4302f2\": \"0\"\n}\nPaste just the first, long, number without any punctuation, here and the second number in the next screen."
+    [mn_outputs_txin]="Enter the second, single digit number from the previous step (usually 0 or 1) here."
+    [mn_conf]="On the QT wallet, open the masternode.conf file via the menu Tools->Open Masternode Configuration File.\n\nPaste the string that will appear on the next screen then save and close the file."
+    [bash_conf]="On the QT wallet, open the bash.conf file via the menu Tools->Open Wallet Configuration File.\n\nPaste the lines that will appear on the next screen then save and close the file"
+    [get_binaries]="Installing binaries to /usr/local/bin..."
+    [vps_configs]="Creating configs in $WALLET_LOCATION..."
+    [vps_systemd]="Creating and installing the $PROJECT_NAME systemd service..."
+    [start_alias]="Restart the wallet.  You should see your Masternode listed in the Masternodes tab.\n\nUse the [Start Alias] button in the wallet to start your alias.  It may take up to 24 hours for your masternode to fully propagate"
 )
 # ------------------------------------------------------------------------------
 
 # ==============================================================================
-msgbox "${INSTALL_STEPS[step0]}"
+msgbox "${INSTALL_STEPS[install_dependencies]}"
 WT_TITLE="Installing dependencies..."
 infobox "${INSTALL_STEPS[installing]}"
 # ==============================================================================
- install_packages
+stfu install_packages
 # ------------------------------------------------------------------------------
 
 # ==============================================================================
 WT_TITLE="Server Config"
 # ==============================================================================
- unattended-upgrades
+stfu unattended-upgrades
 # change_hostname
- create_swap
- create_user
+stfu create_swap
+stfu create_user
 # harden_ssh #Needs work
- setup_ufw
- setup_fail2ban
+stfu setup_ufw
+stfu setup_fail2ban
 # ------------------------------------------------------------------------------
 
 # ==============================================================================
 # Install Steps
 # ==============================================================================
-MN_PRIV_KEY=$(inputbox "${INSTALL_STEPS[step1]}")
-MN_ALIAS=$(inputbox "${INSTALL_STEPS[step2]}")
+MN_PRIV_KEY=$(inputbox "${INSTALL_STEPS[create_key]}")
+MN_ALIAS=$(inputbox "${INSTALL_STEPS[choose_alias]}")
     # note:  --default-item is not working here.  need fix.
-msgbox "${INSTALL_STEPS[step3]}"
-COLLATERAL_OUTPUT_TXID=$(inputbox "${INSTALL_STEPS[step4]}")
-COLLATERAL_OUTPUT_INDEX=$(inputbox "${INSTALL_STEPS[step5]}")
-msgbox "${INSTALL_STEPS[step6]}"
+msgbox "${INSTALL_STEPS[stake_address]}"
+COLLATERAL_OUTPUT_TXID=$(inputbox "${INSTALL_STEPS[mn_outputs]}")
+COLLATERAL_OUTPUT_INDEX=$(inputbox "${INSTALL_STEPS[mn_outputs_txin]}")
+msgbox "${INSTALL_STEPS[mn_conf]}"
     MASTERNODE_CONF="$MN_ALIAS $PUBLIC_IP:$P2P_PORT $MN_PRIV_KEY $COLLATERAL_OUTPUT_TXID $COLLATERAL_OUTPUT_INDEX"
     text_to_copy $MASTERNODE_CONF
-msgbox "${INSTALL_STEPS[step7]}"
+msgbox "${INSTALL_STEPS[bash_conf]}"
 LOCAL_WALLET_CONF="rpcuser=$RPCUSER\nrpcpassword=$RPCPASSWORD\nrpcallowip=127.0.0.1\nlisten=0\nserver=1\ndaemon=1\nlogtimestamps=1\nmaxconnections=256"
     text_to_copy $LOCAL_WALLET_CONF
-infobox "${INSTALL_STEPS[step8]}"
+infobox "${INSTALL_STEPS[get_binaries]}"
     stfu download_binaries
-infobox "${INSTALL_STEPS[step9]}"
+infobox "${INSTALL_STEPS[vps_configs]}"
 SERVER_WALLET_CONF="rpcuser=${RPCUSER}\nrpcpassword=${RPCPASSWORD}\nrpcallowip=127.0.0.1\nlisten=1\nserver=1\ndaemon=1\nlogtimestamps=1\nmaxconnections=256\nmasternode=1\nexternalip=${PUBLIC_IP}\nbind=${PUBLIC_IP}:${P2P_PORT}\nmasternodeaddr=${PUBLIC_IP}\nmasternodeprivkey=${MN_PRIV_KEY}\nmnconf=${WALLET_LOCATION}/masternode.conf\ndatadir=${WALLET_LOCATION}"
     stfu wallet_configs
-infobox "${INSTALL_STEPS[step10]}"
+infobox "${INSTALL_STEPS[vps_systemd]}"
 DAEMON_SERVICE="[Unit]\nDescription=$PROJECT_NAME daemon\nAfter=network.target\n\n[Service]\nExecStart=/usr/local/bin/$DAEMON_BINARY --daemon --conf=$WALLET_LOCATION/$PROJECT_NAME.conf -pid=/run/$DAEMON_BINARY/$DAEMON_BINARY.pid\nRuntimeDirectory=$DAEMON_BINARY\nUser=$LINUX_USER\nType=forking\nWorkingDirectory=$WALLET_LOCATION\nPIDFile=/run/$DAEMON_BINARY/$DAEMON_BINARY.pid\nRestart=on-failure\n\nPrivateTmp=true\nProtectSystem=full\nNoNewPrivileges=true\nPrivateDevices=true\nMemoryDenyWriteExecute=true\n\n[Install]\nWantedBy=multi-user.target"
     stfu daemon_service
-msgbox "${INSTALL_STEPS[step11]}"
+msgbox "${INSTALL_STEPS[start_alias]}"
 # ==============================================================================
 # Display logo
 # ==============================================================================
