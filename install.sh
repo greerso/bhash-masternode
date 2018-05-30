@@ -660,16 +660,16 @@ stfu install_packages
 # ==============================================================================
 WT_TITLE="Server Config"
 # ==============================================================================
-infobox "Configureing automatic security upgrades"
+infobox "Configuring automatic security upgrades"
 stfu unattended-upgrades
 # change_hostname
 # stfu create_swap
 # stfu create_user
 # harden_ssh #Needs work
-infobox "Configureing firewall"
-stfu setup_ufw
-infobox "Configureing Fail2Ban"
-stfu setup_fail2ban
+# infobox "Configureing firewall"
+# stfu setup_ufw
+# infobox "Configureing Fail2Ban"
+# stfu setup_fail2ban
 # ------------------------------------------------------------------------------
 
 # ==============================================================================
