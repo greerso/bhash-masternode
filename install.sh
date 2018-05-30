@@ -666,8 +666,8 @@ stfu unattended-upgrades
 # stfu create_swap
 # stfu create_user
 # harden_ssh #Needs work
-# infobox "Configureing firewall"
-# stfu setup_ufw
+infobox "Configuring firewall"
+stfu setup_ufw
 # infobox "Configureing Fail2Ban"
 # stfu setup_fail2ban
 # ------------------------------------------------------------------------------
