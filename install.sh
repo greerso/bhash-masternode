@@ -612,8 +612,8 @@ declare -a INSTALL_OPTIONS=(
 #    "Change Hostame"
 Base server install
 #- Setting a hostname
- - Create swap space for a low ram vps
- - Add a non-root user
+# - Create swap space for a low ram vps
+# - Add a non-root user
  - Configure automatic security updates for Ubuntu
  - Install and configure UFW Firewall
   - Allow all outbound traffic
@@ -631,6 +631,7 @@ Masternode install
 - Prompted install
 - Automatically detect Client and Host ip addresses
 - Automatically generate RPC User and secure password.
+- Download latest version from Github API
 )
 declare -A INSTALL_STEPS=(
     [installing]="Installing packages required for setup..."
