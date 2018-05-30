@@ -652,20 +652,23 @@ declare -A INSTALL_STEPS=(
 # ==============================================================================
 msgbox "${INSTALL_STEPS[install_dependencies]}"
 WT_TITLE="Installing dependencies..."
-#infobox "${INSTALL_STEPS[installing]}"
+infobox "${INSTALL_STEPS[installing]}"
 # ==============================================================================
-install_packages
+stfu install_packages
 # ------------------------------------------------------------------------------
 
 # ==============================================================================
 WT_TITLE="Server Config"
 # ==============================================================================
+infobox "Configureing automatic security upgrades"
 stfu unattended-upgrades
 # change_hostname
-stfu create_swap
-stfu create_user
+# stfu create_swap
+# stfu create_user
 # harden_ssh #Needs work
+infobox "Configureing firewall"
 stfu setup_ufw
+infobox "Configureing Fail2Ban"
 stfu setup_fail2ban
 # ------------------------------------------------------------------------------
 
