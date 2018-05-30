@@ -673,7 +673,7 @@ stfu setup_fail2ban
 # ------------------------------------------------------------------------------
 
 # ==============================================================================
-# Install Steps
+WT_TITLE="Masternode Config"
 # ==============================================================================
 MN_PRIV_KEY=$(inputbox "${INSTALL_STEPS[create_key]}")
 MN_ALIAS=$(inputbox "${INSTALL_STEPS[choose_alias]}")
