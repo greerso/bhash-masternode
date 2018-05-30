@@ -652,7 +652,7 @@ declare -A INSTALL_STEPS=(
 # ==============================================================================
 msgbox "${INSTALL_STEPS[install_dependencies]}"
 WT_TITLE="Installing dependencies..."
-infobox "${INSTALL_STEPS[installing]}"
+#infobox "${INSTALL_STEPS[installing]}"
 # ==============================================================================
 install_packages
 # ------------------------------------------------------------------------------
