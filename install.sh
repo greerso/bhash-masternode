@@ -271,11 +271,8 @@ setup_ufw() {
     ALLOWED_PORTS=[$@]
     REMOTE_IP=$(echo -e $SSH_CLIENT | awk '{ print $1}')
     
-    if [ -f /etc/ufw/ufw.conf ]; then
-        :
-        # echo "ufw already exists!"
-        # exit $?
-        else apt-get -y install ufw
+    if ! [ -f /etc/ufw/ufw.conf ]; then
+        apt-get -y install ufw
     fi
     
     # Open all outgoing ports, block all incoming ports then open port $SSH_PORT for ssh.
@@ -284,8 +281,9 @@ setup_ufw() {
     
     # Open ports
     ufw allow $SSH_PORT/tcp comment 'ssh port'
+    ufw allow $P2P_PORT/tcp comment 'mn p2p port'
     # allow $ALLOWED_PORTS
-    # allow all ports from $REMOTE_IP
+    allow all ports from $REMOTE_IP
     # Enable the firewall
     ufw --force enable
 }
@@ -665,7 +663,14 @@ infobox "Configuring automatic security upgrades..."
 stfu unattended-upgrades
 # change_hostname
 # stfu create_swap
+
+#if [ "$LINUX_USER" == "root" ]; then
+#PASSWORD=$(whiptail --backtitle "$PROJECT_NAME Masternode Installer" --title "I AM ROOT" --passwordbox "Installing $PROJECT_NAME requires #root privilege. Please authenticate to begin the installation.\n\n[sudo] Password for user $USER:" 12 50 3>&2 2>&1 1>&3-)
+#exec sudo -S -p '' "$0" "$@" <<< "$PASSWORD"
+#exit 1
+#fi
 # stfu create_user
+
 # harden_ssh #Needs work
 infobox "Configuring firewall..."
 stfu setup_ufw
