@@ -136,6 +136,21 @@ inputbox() {
     3>&1 1>&2 2>&3 \
     $WT_SIZE
 }
+# inputbox TEXT
+yesnobox() {
+    BASE_LINES=8
+    WT_HEIGHT=$(echo -e "$@" | wc -l)
+    (( WT_HEIGHT=WT_HEIGHT+BASE_LINES ))
+    WT_WIDTH=78
+    WT_SIZE="$WT_HEIGHT $WT_WIDTH"
+    TERM=ansi whiptail \
+    --yesno "$@" \
+    --backtitle "$WT_BACKTITLE" \
+    --title "$WT_TITLE" \
+    --nocancel \
+    3>&1 1>&2 2>&3 \
+    $WT_SIZE
+}
 
 pre_checks() {
     UBUNTU_VER=$(lsb_release -rs)
@@ -664,12 +679,11 @@ stfu unattended-upgrades
 # change_hostname
 # stfu create_swap
 
-#if [ "$LINUX_USER" == "root" ]; then
-#PASSWORD=$(whiptail --backtitle "$PROJECT_NAME Masternode Installer" --title "I AM ROOT" --passwordbox "Installing $PROJECT_NAME requires #root privilege. Please authenticate to begin the installation.\n\n[sudo] Password for user $USER:" 12 50 3>&2 2>&1 1>&3-)
-#exec sudo -S -p '' "$0" "$@" <<< "$PASSWORD"
-#exit 1
-#fi
-# stfu create_user
+if [ "$LINUX_USER" == "root" ]; then
+	if (yesnobox "I AM ROOT" "You logged into your server as root.  It is not reccomended to install and run your masternode as root. Would you like to create a normal user."); then
+	stfu create_user
+	fi
+fi
 
 # harden_ssh #Needs work
 infobox "Configuring firewall..."
