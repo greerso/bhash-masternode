@@ -162,7 +162,7 @@ pre_checks() {
     if [ "$(id -nu)" != "root" ]; then
     sudo -k
     PASSWORD=$(whiptail --backtitle "$PROJECT_NAME Masternode Installer" --title "Authentication required" --passwordbox "Installing $PROJECT_NAME requires root privilege. Please authenticate to begin the installation.\n\n[sudo] Password for user $USER:" 12 50 3>&2 2>&1 1>&3-)
-    exec sudo -S -p '' "$0" "$@" <<< "$PASSWORD"
+    exec sudo -E -S -p '' "$0" "$@" <<< "$PASSWORD"
     exit 1
     fi
 
@@ -616,7 +616,7 @@ systemctl restart $DAEMON_BINARY
 # ==============================================================================
 # Pre-checks
 # ==============================================================================
-# pre_checks
+pre_checks
 # ------------------------------------------------------------------------------
 
 # ==============================================================================
