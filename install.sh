@@ -606,6 +606,7 @@ DAEMON_SERVICE=$(echo -e $DAEMON_SERVICE)
 cat <<EOF > /etc/systemd/system/$DAEMON_BINARY.service
 $DAEMON_SERVICE
 EOF
+chmod 755 /etc/systemd/system/$DAEMON_BINARY.service
 systemctl daemon-reload
 systemctl enable $DAEMON_BINARY
 systemctl restart $DAEMON_BINARY
