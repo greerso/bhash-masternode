@@ -696,12 +696,20 @@ stfu setup_fail2ban
 # ==============================================================================
 WT_TITLE="Masternode Config"
 # ==============================================================================
+while [ ! -z “$MN_PRIV_KEY” ]; do
 MN_PRIV_KEY=$(inputbox "${INSTALL_STEPS[create_key]}")
+done
+while [ ! -z “$MN_PRIV_KEY” ]; do
 MN_ALIAS=$(inputbox "${INSTALL_STEPS[choose_alias]}")
     # note:  --default-item is not working here.  need fix.
+done
 msgbox "${INSTALL_STEPS[stake_address]}"
+while [ ! -z “$MN_PRIV_KEY” ]; do
 COLLATERAL_OUTPUT_TXID=$(inputbox "${INSTALL_STEPS[mn_outputs]}")
+done
+while [ ! -z “$MN_PRIV_KEY” ]; do
 COLLATERAL_OUTPUT_INDEX=$(inputbox "${INSTALL_STEPS[mn_outputs_txin]}")
+done
 msgbox "${INSTALL_STEPS[mn_conf]}"
     MASTERNODE_CONF="$MN_ALIAS $PUBLIC_IP:$P2P_PORT $MN_PRIV_KEY $COLLATERAL_OUTPUT_TXID $COLLATERAL_OUTPUT_INDEX"
     text_to_copy $MASTERNODE_CONF
