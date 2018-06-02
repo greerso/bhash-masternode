@@ -95,7 +95,7 @@ user_in_group() {
 
 # infobox TEXT
 infobox() {
-    BASE_LINES=8
+    BASE_LINES=10
     WT_HEIGHT=$(echo -e "$@" | wc -l)
     (( WT_HEIGHT=WT_HEIGHT+BASE_LINES ))
     WT_WIDTH=78
@@ -109,7 +109,7 @@ infobox() {
 
 # msgbox TEXT
 msgbox() {
-    BASE_LINES=8
+    BASE_LINES=10
     WT_HEIGHT=$(echo -e "$@" | wc -l)
     (( WT_HEIGHT=WT_HEIGHT+BASE_LINES ))
     WT_WIDTH=78
@@ -123,7 +123,7 @@ msgbox() {
 
 # inputbox TEXT
 inputbox() {
-    BASE_LINES=8
+    BASE_LINES=10
     WT_HEIGHT=$(echo -e "$@" | wc -l)
     (( WT_HEIGHT=WT_HEIGHT+BASE_LINES ))
     WT_WIDTH=78
@@ -702,7 +702,6 @@ MN_PRIV_KEY=$(inputbox "${INSTALL_STEPS[create_key]}")
 MN_ALIAS=$(inputbox "${INSTALL_STEPS[choose_alias]}")
     # note:  --default-item is not working here.  need fix.
 #done
-eval $INSTALL_STEPS
 msgbox "${INSTALL_STEPS[stake_address]/"MN_ALIAS"/"$MN_ALIAS"}"
 echo "${$MY_VAR/"NewShit"/"OLDSHIT"}"
 #while [ ! -z “$MN_PRIV_KEY” ]; do
