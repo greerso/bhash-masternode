@@ -698,16 +698,16 @@ WT_TITLE="Masternode Config"
 while [ -z $MN_PRIV_KEY ]; do
 MN_PRIV_KEY=$(inputbox "${INSTALL_STEPS[create_key]}")
 done
-while [ -z $MN_PRIV_KEY ]; do
+while [ -z $MN_ALIAS ]; do
 MN_ALIAS=$(inputbox "${INSTALL_STEPS[choose_alias]}")
     # note:  --default-item is not working here.  need fix.
 done
 msgbox "${INSTALL_STEPS[stake_address]/"MN_ALIAS"/"$MN_ALIAS"}"
 echo "${$MY_VAR/"NewShit"/"OLDSHIT"}"
-while [ -z $MN_PRIV_KEY ]; do
+while [ -z $COLLATERAL_OUTPUT_TXID ]; do
 COLLATERAL_OUTPUT_TXID=$(inputbox "${INSTALL_STEPS[mn_outputs]}")
 done
-while [ -z $MN_PRIV_KEY ]; do
+while [ -z $COLLATERAL_OUTPUT_INDEX ]; do
 COLLATERAL_OUTPUT_INDEX=$(inputbox "${INSTALL_STEPS[mn_outputs_txin]}")
 done
 msgbox "${INSTALL_STEPS[mn_conf]}"
