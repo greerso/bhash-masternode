@@ -647,9 +647,9 @@ Masternode install
 declare -A INSTALL_STEPS=(
     [installing]="Installing packages required for setup..."
     [install_dependencies]="This script will walk you through the following:\n\n${INSTALL_OPTIONS}\n\nYou will need:\n- A QT wallet with at least $PROJECT_STAKE coins and to know how to copy/paste."
-    [create_key]="Start the qt wallet.\n - Go to Settings->Debug console and paste the following command:\n\ncreatemasternodekey\n\nThe result will look something like this \"y0uRm4st3rn0depr1vatek3y\".  Enter it here"
+    [create_key]="Start the qt wallet.\n - Go to Settings->Debug console and paste the following command:\n\ncreatemasternodekey\n\nThe result will look something like this \"7b3p59Fr2GCIvR6aaTTerMNfNkFetJZVLD3hzSCYGKsZpXFjwuZ\".  Enter it here"
     [choose_alias]="Choose an alias for your masternode, for example MN1, then enter it here"
-    [stake_address]="While still in the Debug console type the following command to get a public address to send the stake to:\n\ngetaccountaddress ${MN_ALIAS}\n\nThe result will look similar to this \"mA7fXSTe23RNoD83Esx6or4uYLxLqunDm5\".  Send exactly $PROJECT_STAKE HASH to that address making sure that any tx fee is covered."
+    [stake_address]="While still in the Debug console type the following command to get a public address to send the stake to:\n\ngetaccountaddress MN_ALIAS\n\nThe result will look similar to this \"mA7fXSTe23RNoD83Esx6or4uYLxLqunDm5\".  Send exactly $PROJECT_STAKE HASH to that address making sure that any tx fee is covered."
     [mn_outputs]="Back in the Debug console Execute the command:\n\nmasternode outputs\n\nThis will output TX and output pairs of numbers, for example:\n{\n\"a9b31238d062ccb5f4b1eb6c3041d369cc014f5e6df38d2d303d791acd4302f2\": \"0\"\n}\nPaste just the first, long, number without any punctuation, here and the second number in the next screen."
     [mn_outputs_txin]="Enter the second, single digit number from the previous step (usually 0 or 1) here."
     [mn_conf]="On the QT wallet, open the masternode.conf file via the menu Tools->Open Masternode Configuration File.\n\nPaste the string that will appear on the next screen then save and close the file."
@@ -701,7 +701,9 @@ MN_PRIV_KEY=$(inputbox "${INSTALL_STEPS[create_key]}")
 MN_ALIAS=$(inputbox "${INSTALL_STEPS[choose_alias]}")
     # note:  --default-item is not working here.  need fix.
 #done
-msgbox "${INSTALL_STEPS[stake_address]}"
+eval $INSTALL_STEPS
+msgbox "${INSTALL_STEPS[stake_address]/"MN_ALIAS"/"$MN_ALIAS"}"
+echo "${$MY_VAR/"NewShit"/"OLDSHIT"}"
 #while [ ! -z “$MN_PRIV_KEY” ]; do
 COLLATERAL_OUTPUT_TXID=$(inputbox "${INSTALL_STEPS[mn_outputs]}")
 #done
@@ -722,7 +724,7 @@ SERVER_WALLET_CONF="rpcuser=${RPCUSER}\nrpcpassword=${RPCPASSWORD}\nrpcallowip=1
 infobox "${INSTALL_STEPS[vps_systemd]}"
 DAEMON_SERVICE="[Unit]\nDescription=$PROJECT_NAME daemon\nAfter=network.target\n\n[Service]\nExecStart=/usr/local/bin/$DAEMON_BINARY --daemon --conf=$WALLET_LOCATION/$PROJECT_NAME.conf -pid=/run/$DAEMON_BINARY/$DAEMON_BINARY.pid\nRuntimeDirectory=$DAEMON_BINARY\nUser=$LINUX_USER\nType=forking\nWorkingDirectory=$WALLET_LOCATION\nPIDFile=/run/$DAEMON_BINARY/$DAEMON_BINARY.pid\nRestart=on-failure\n\nPrivateTmp=true\nProtectSystem=full\nNoNewPrivileges=true\nPrivateDevices=true\nMemoryDenyWriteExecute=true\n\n[Install]\nWantedBy=multi-user.target"
     stfu daemon_service
-msgbox "${INSTALL_STEPS[start_alias]}"
+msgbox "${INSTALL_STEPS[start_alias]/"MN_ALIAS"/"$MN_ALIAS"}"
 # ==============================================================================
 # Display logo
 # ==============================================================================
