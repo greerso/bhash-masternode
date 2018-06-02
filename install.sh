@@ -621,12 +621,14 @@ systemctl restart $DAEMON_BINARY
 # ==============================================================================
 # Setup dialogs
 # ==============================================================================
-declare -a INSTALL_OPTIONS=(
-#    "Change Hostame"
+#- Harden SSH security
+#  - Change SSH from port 22
+#  - Disable root logon
+#  - Require ssh-keys
+declare -a INSTALL_OPTIONS=("
 Base server install
-#- Setting a hostname
-# - Create swap space for a low ram vps
-# - Add a non-root user
+ - Create swap space for a low ram vps
+ - Add a non-root user
  - Configure automatic security updates for Ubuntu
  - Install and configure UFW Firewall
   - Allow all outbound traffic
@@ -635,20 +637,16 @@ Base server install
   - Whitelist installer ip address
  - Install and configure Fail2Ban IDS
  - Autoblock repeat offenders from public blacklist
-#- Harden SSH security
-#  - Change SSH from port 22
-#  - Disable root logon
-#  - Require ssh-keys
 
 Masternode install
 - Prompted install
 - Automatically detect Client and Host ip addresses
 - Automatically generate RPC User and secure password.
 - Download latest version from Github API
-)
+")
 declare -A INSTALL_STEPS=(
     [installing]="Installing packages required for setup..."
-    [install_dependencies]="This script will walk you through the following:\n\n'${INSTALL_OPTIONS}'\n\nYou will need:\n- A QT wallet with at least $PROJECT_STAKE coins and to know how to copy/paste."
+    [install_dependencies]="This script will walk you through the following:\n\n${INSTALL_OPTIONS}\n\nYou will need:\n- A QT wallet with at least $PROJECT_STAKE coins and to know how to copy/paste."
     [create_key]="Start the qt wallet.\n - Go to Settings->Debug console and paste the following command:\n\ncreatemasternodekey\n\nThe result will look something like this \"y0uRm4st3rn0depr1vatek3y\".  Enter it here"
     [choose_alias]="Choose an alias for your masternode, for example MN1, then enter it here"
     [stake_address]="While still in the Debug console type the following command to get a public address to send the stake to:\n\ngetaccountaddress ${MN_ALIAS}\n\nThe result will look similar to this \"mA7fXSTe23RNoD83Esx6or4uYLxLqunDm5\".  Send exactly $PROJECT_STAKE HASH to that address making sure that any tx fee is covered."
