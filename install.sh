@@ -659,7 +659,7 @@ declare -A INSTALL_STEPS=(
     [get_binaries]="Installing binaries to /usr/local/bin..."
     [vps_configs]="Creating configs in $WALLET_LOCATION..."
     [vps_systemd]="Creating and installing the $PROJECT_NAME systemd service..."
-    [start_alias]="Restart the wallet.  You should see your Masternode listed in the Masternodes tab.\n\nUse the [Start Alias] button in the wallet to start your alias.  It may take up to 24 hours for your masternode to fully propagate"
+    [start_alias]="Restart the wallet.  You should see your Masternode listed in the Masternodes tab.\n\nGo to Settings->Debug console and paste the following command:\n\nstartmasternode alias lockwallet ${MN_ALIAS}\n\nto start your alias.\n\nIt may take up to 24 hours for your masternode to fully propagate"
 )
 # ------------------------------------------------------------------------------
 
@@ -727,6 +727,7 @@ echo -e "${PROJECT_LOGO}\n\nUseful commands:\n'${PROJECT_CLI} masternode status'
 # ==============================================================================
 # TODO
 # ==============================================================================
+#	Validation on user input
 #	Make Base Installs optional
 #   Fail2Ban email reports of hacking activity
 #   Harden SSH security
