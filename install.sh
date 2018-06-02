@@ -687,7 +687,7 @@ fi
 # harden_ssh #Needs work
 infobox "Configuring firewall..."
 stfu setup_ufw
-infobox "Configureing Fail2Ban..."
+infobox "Configuring Fail2Ban..."
 stfu setup_fail2ban
 # ------------------------------------------------------------------------------
 
