@@ -136,20 +136,20 @@ inputbox() {
     3>&1 1>&2 2>&3 \
     $WT_SIZE
 }
-# inputbox TEXT
+
+# yesnobox TEXT
 yesnobox() {
-    BASE_LINES=8
-    WT_HEIGHT=$(echo -e "$@" | wc -l)
-    (( WT_HEIGHT=WT_HEIGHT+BASE_LINES ))
-    WT_WIDTH=78
-    WT_SIZE="$WT_HEIGHT $WT_WIDTH"
-    TERM=ansi whiptail \
-    --yesno "$@" \
-    --backtitle "$WT_BACKTITLE" \
-    --title "$WT_TITLE" \
-    --nocancel \
-    3>&1 1>&2 2>&3 \
-    $WT_SIZE
+BASE_LINES=8
+WT_HEIGHT=$(echo -e "$@" | wc -l)
+(( WT_HEIGHT=WT_HEIGHT+BASE_LINES ))
+WT_WIDTH=78
+WT_SIZE="$WT_HEIGHT $WT_WIDTH"
+TERM=ansi whiptail \
+--yesno "$@" \
+--backtitle "$WT_BACKTITLE" \
+--title "$WT_TITLE" \
+3>&1 1>&2 2>&3 \
+$WT_SIZE
 }
 
 pre_checks() {
@@ -680,8 +680,9 @@ stfu unattended-upgrades
 # stfu create_swap
 
 if [ "$LINUX_USER" == "root" ]; then
-	if (yesnobox "I AM ROOT" "You logged into your server as root.  It is not reccomended to install and run your masternode as root. Would you like to create a normal user."); then
-	stfu create_user
+	WT_TITLE="I AM ROOT" 
+	if (yesnobox "You logged into your server as root.\n\nIt is not reccomended to install and run your masternode as root. Would you like to create a normal user?"); then
+	create_user
 	fi
 fi
 
