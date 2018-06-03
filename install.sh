@@ -729,7 +729,12 @@ msgbox "${INSTALL_STEPS[start_alias]/"MN_ALIAS"/"$MN_ALIAS"}"
 # Display logo
 # ==============================================================================
 clear
-echo -e "${PROJECT_LOGO}\n\nUseful commands:\n'${PROJECT_CLI} masternode status'   #Get the status of your masternode\n'${PROJECT_CLI} --help'              #Get a list of things that ${PROJECT_CLI} can do\n'sudo systemctl stop ${DAEMON_BINARY}'    #Stop the ${PROJECT_NAME} Daemon\n'sudo systemctl start ${DAEMON_BINARY}'   #Start the ${PROJECT_NAME} Daemon\n'sudo systemctl restart ${DAEMON_BINARY}' #Restart the ${PROJECT_NAME} Daemon\n'sudo systemctl status ${DAEMON_BINARY}'  #Get the status ${PROJECT_NAME} Daemon\n\nFor a beginners quick start for linux see https://steemit.com/tutorial/@greerso/linux-cli-command-line-interface-primer-for-beginners"
+echo -e "${PROJECT_LOGO}\n\nYour public ip address is ${PUBLIC_IP}\nThe ${PROJECT_NAME}.conf and masternode.conf are located at ${WALLET_LOCATION}\nThe ${PROJECT_NAME} binaries are located in at /usr/local/bin\n\nUseful commands:\n'${PROJECT_CLI} masternode status'   #Get the status of your masternode\n'${PROJECT_CLI} --help'              #Get a list of things that ${PROJECT_CLI} can do\n'sudo systemctl stop ${DAEMON_BINARY}'    #Stop the ${PROJECT_NAME} Daemon\n'sudo systemctl start ${DAEMON_BINARY}'   #Start the ${PROJECT_NAME} Daemon\n'sudo systemctl restart ${DAEMON_BINARY}' #Restart the ${PROJECT_NAME} Daemon\n'sudo systemctl status ${DAEMON_BINARY}'  #Get the status ${PROJECT_NAME} Daemon\n\nFor a beginners quick start for linux see https://steemit.com/tutorial/@greerso/linux-cli-command-line-interface-primer-for-beginners"\n\n
+if [ "$LINUX_USER" != "$USERNAME" ]; then
+echo -e "The next time that you login to this server, you should use the username $USERNAME and password created in this script and disable root ssh login"
+fi
+su "$USERNAME"
+
 # ------------------------------------------------------------------------------
 
 # ==============================================================================
