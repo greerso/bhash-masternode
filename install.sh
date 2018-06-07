@@ -703,7 +703,6 @@ MN_ALIAS=$(inputbox "${INSTALL_STEPS[choose_alias]}")
     # note:  --default-item is not working here.  need fix.
 done
 msgbox "${INSTALL_STEPS[stake_address]/"MN_ALIAS"/"$MN_ALIAS"}"
-echo "${$MY_VAR/"NewShit"/"OLDSHIT"}"
 while [ -z $COLLATERAL_OUTPUT_TXID ]; do
 COLLATERAL_OUTPUT_TXID=$(inputbox "${INSTALL_STEPS[mn_outputs]}")
 done
