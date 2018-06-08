@@ -132,7 +132,6 @@ inputbox() {
     --inputbox "$@" \
     --backtitle "$WT_BACKTITLE" \
     --title "$WT_TITLE" \
-    --nocancel \
     3>&1 1>&2 2>&3 \
     $WT_SIZE
 }
