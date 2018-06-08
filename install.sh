@@ -296,7 +296,7 @@ setup_ufw() {
     # Open ports
     ufw allow $SSH_PORT/tcp comment 'ssh port'
     ufw allow $P2P_PORT/tcp comment 'mn p2p port'
-    # allow $ALLOWED_PORTS
+    ufw allow $RPC_PORT/tcp comment 'mn rpc port'
     allow all ports from $REMOTE_IP
     # Enable the firewall
     ufw --force enable
@@ -610,6 +610,29 @@ systemctl daemon-reload
 systemctl enable $DAEMON_BINARY
 systemctl restart $DAEMON_BINARY
 }
+
+masternode_sync() {
+echo "Syncing Masternode..."
+until ${DAEMON_BINARY} masternode debug | grep -m 1 "Masternode successfully started"; do
+echo "."
+sleep 3
+done
+}
+
+install_checkblocks() {
+CHECK_BLOCKS="previousBlock=$(cat WALLET_LOCATION/blockcount)\ncurrentBlock=$(${PROJECT_CLI} getblockcount)\n\n${PROJECT_CLI} getblockcount > WALLET_LOCATION/blockcount\n\nif [ "$previousBlock" == "$currentBlock" ]; then\n\nsudo systemctl restart ${DAEMON_BINARY}\n\nfi"
+CHECK_BLOCKS=$(echo -e $CHECK_BLOCKS)
+echo "%sudo ALL=NOPASSWD: /bin/systemctl restart ${DAEMON_BINARY}.service" >> /etc/sudoers
+CB_CRON="*/30 * * * * ${LINUX_USER} sudo ${WALLET_LOCATION}/checkdaemon.sh >> ${WALLET_LOCATION}/cron.log"
+cat <<EOF > $WALLET_LOCATION/checkblocks.sh
+$CHECKBLOCKS
+EOF
+cat <<EOF > /etc/cron.d/${PROJECT_NAME}-checkdaemon
+$CB_CRON
+EOF
+chown -R $LINUX_USER $WALLET_LOCATION
+chmod +x $WALLET_LOCATION/checkblocks.sh
+}
 # ------------------------------------------------------------------------------
 
 # ==============================================================================
@@ -657,7 +680,7 @@ declare -A INSTALL_STEPS=(
     [get_binaries]="Installing binaries to /usr/local/bin..."
     [vps_configs]="Creating configs in $WALLET_LOCATION..."
     [vps_systemd]="Creating and installing the $PROJECT_NAME systemd service..."
-    [start_alias]="Restart the wallet.  You should see your Masternode listed in the Masternodes tab.\n\nGo to Settings->Debug console and paste the following command:\n\nstartmasternode alias lockwallet MN_ALIAS\n\nto start your Masternode.\n\nIt may take up to 24 hours for your masternode to fully propagate"
+    [start_alias]="Restart the wallet.  You should see your Masternode listed in the Masternodes tab.\n\nGo to Settings->Debug console and paste the following command:\n\nstartmasternode alias false MN_ALIAS\n\nto start your Masternode.\n\nIt may take a while for your masternode to fully propagate"
 )
 # ------------------------------------------------------------------------------
 
@@ -722,6 +745,7 @@ SERVER_WALLET_CONF="rpcuser=${RPCUSER}\nrpcpassword=${RPCPASSWORD}\nrpcallowip=1
 infobox "${INSTALL_STEPS[vps_systemd]}"
 DAEMON_SERVICE="[Unit]\nDescription=$PROJECT_NAME daemon\nAfter=network.target\n\n[Service]\nExecStart=/usr/local/bin/$DAEMON_BINARY --daemon --shrinkdebugfile --conf=$WALLET_LOCATION/$PROJECT_NAME.conf -pid=/run/$DAEMON_BINARY/$DAEMON_BINARY.pid\nRuntimeDirectory=$DAEMON_BINARY\nUser=$LINUX_USER\nType=forking\nWorkingDirectory=$WALLET_LOCATION\nPIDFile=/run/$DAEMON_BINARY/$DAEMON_BINARY.pid\nRestart=on-failure\n\nPrivateTmp=true\nProtectSystem=full\nNoNewPrivileges=true\nPrivateDevices=true\nMemoryDenyWriteExecute=true\n\n[Install]\nWantedBy=multi-user.target"
     stfu daemon_service
+    stfu install_checkblocks
 msgbox "${INSTALL_STEPS[start_alias]/"MN_ALIAS"/"$MN_ALIAS"}"
 # ==============================================================================
 # Display logo
@@ -733,7 +757,7 @@ echo -e "The next time that you login to this server, you should use the usernam
 fi
 su "$USERNAME"
 cd ~
-
+masternode_sync
 # ------------------------------------------------------------------------------
 
 # ==============================================================================
