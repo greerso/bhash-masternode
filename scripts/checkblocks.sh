@@ -1,5 +1,5 @@
 #!/bin/bash
-# checkdaemon.sh
+# checkblocks.sh
 # Make sure the daemon is not stuck.
 # Add the following to the crontab (i.e. sudo crontab -e)
 # */30 * * * * ~/.bhash/checkdaemon.sh
