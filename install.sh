@@ -129,11 +129,12 @@ inputbox() {
     WT_WIDTH=78
     WT_SIZE="$WT_HEIGHT $WT_WIDTH"
     TERM=ansi whiptail \
-    --inputbox "$@" \
+    --inputbox "$1" \
     --backtitle "$WT_BACKTITLE" \
     --title "$WT_TITLE" \
     3>&1 1>&2 2>&3 \
-    $WT_SIZE
+    $WT_SIZE \
+    "$2"
 }
 
 # yesnobox TEXT
@@ -678,7 +679,7 @@ declare -A INSTALL_STEPS=(
     [mn_conf]="On the QT wallet, open the masternode.conf file via the menu Tools->Open Masternode Configuration File.\n\nPaste the string that will appear on the next screen then save and close the file."
     [bash_conf]="On the QT wallet, open the bash.conf file via the menu Tools->Open Wallet Configuration File.\n\nPaste the lines that will appear on the next screen then save and close the file"
     [get_binaries]="Installing binaries to /usr/local/bin..."
-    [vps_configs]="Creating configs in $WALLET_LOCATION..."
+    [vps_configs]="Creating configs in ${WALLET_LOCATION}..."
     [vps_systemd]="Creating and installing the $PROJECT_NAME systemd service..."
     [start_alias]="Restart the wallet.  You should see your Masternode listed in the Masternodes tab.\n\nGo to Settings->Debug console and paste the following command:\n\nstartmasternode alias false MN_ALIAS\n\nto start your Masternode.\n\nIt may take a while for your masternode to fully propagate"
 )
