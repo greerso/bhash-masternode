@@ -20,6 +20,7 @@
     PROJECT_STAKE=2000
     RPC_PORT="17654"
 	P2P_PORT="17652"
+	BIN_PATH="/usr/local/bin/"
 #
 export NEWT_COLORS=''
 RPCUSER="${PROJECT_NAME}_user"
@@ -586,7 +587,7 @@ systemctl restart fail2ban
 download_binaries() {
 GITHUB_BIN_URL="$(curl -sSL https://api.github.com/repos/${PROJECT_GITHUB_REPO}/releases/latest | jq -r ".assets[] | select(.name | test(\"$GITHUB_BIN_SUFFIX\")) | .browser_download_url")"
     
-    curl -sSL "$GITHUB_BIN_URL" | tar xvz -C /usr/local/bin/
+    curl -sSL "$GITHUB_BIN_URL" | tar xvz -C $BIN_PATH
 }
 
 wallet_configs() {
@@ -686,10 +687,10 @@ declare -A INSTALL_STEPS=(
 # ------------------------------------------------------------------------------
 
 # ==============================================================================
-msgbox "${INSTALL_STEPS[install_dependencies]}"
 WT_TITLE="Installing dependencies..."
-infobox "${INSTALL_STEPS[installing]}"
 # ==============================================================================
+msgbox "${INSTALL_STEPS[install_dependencies]}"
+infobox "${INSTALL_STEPS[installing]}"
 stfu install_packages
 # ------------------------------------------------------------------------------
 
