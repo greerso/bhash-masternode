@@ -795,9 +795,4 @@ masternode_sync
 #       Change port 22
 #       Disable root logon
 #       Require ssh-keys
-##Masternode install
-#   Check for already installed
-#       Check daemon up-to-date
-#           install update
-#	NTP and timezone
 # ------------------------------------------------------------------------------
