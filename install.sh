@@ -171,7 +171,9 @@ pre_checks() {
 
     if [ -n $DAEMON_PID ]; then
     msgbox "The $PROJECT_NAME daemon is already running.  Stopping it...."
-    WALLET_LOCATION="$(pwdx $DAEMON_PID | awk '{print $2}')"
+    WALLET_LOCATION=$(pwdx $DAEMON_PID | awk '{print $2}')
+    CURRENT_VERSION=$($PROJECT_CLI --version | awk '{print $NF}' | awk -F "-" '{print $1}')
+    LATEST_VERSION=$(get_latest_release ${PROJECT_GITHUB_REPO})
 		if [ /etc/systemd/system/${DAEMON_BINARY}.service ]; then
 		systemctl stop $DAEMON_BINARY
 		else $DAEMON_CLI stop
@@ -645,6 +647,13 @@ EOF
 chown -R $LINUX_USER $WALLET_LOCATION
 chmod +x $WALLET_LOCATION/checkblocks.sh
 }
+
+get_latest_release() {
+  curl --silent "https://api.github.com/repos/$1/releases/latest" | # Get latest release from GitHub api
+    grep '"tag_name":' |                                            # Get tag line
+    sed -E 's/.*"([^"]+)".*/\1/'                                    # Pluck JSON value
+}
+
 # ------------------------------------------------------------------------------
 
 # ==============================================================================
