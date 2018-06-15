@@ -21,6 +21,8 @@
     RPC_PORT="17654"
 	P2P_PORT="17652"
 	BIN_PATH="/usr/local/bin/"
+	PROJECT_LOGO="          *////////////*                       \n         ///////////////                       \n         *//////////////                       \n         ****//////////                        \n        ********///////                        \n        ***********///*                        \n       /**************////////*,               \n       *******************/////////,           \n       **********************/////////         \n       *************************///////*       \n      ,*************@@@@***%@@@%***//////      \n      *************/@@@&***@@@@/******////     \n      *********@@@@@@@@@@@@@@@@@@@*******//    \n     **********@@@@@@@@@@@@@@@@@@@*********,   \n     *************/@@@@***&@@@**************   \n     *************&@@@#***@@@@*************,   \n    ,**********@@@@@@@@@@@@@@@@@@&*********/   \n    ,,********/@@@@@@@@@@@@@@@@@@**********    \n    ,,,,,********#@@@/***@@@@*************/    \n   ,,,,,,,,*****@@@@***(@@@@************(     \n   ,,,,,,,,,,,**************************       \n   ,,,,,,,,,,,,,,,********************/        \n  .,,,,,,,,,,,,,,,,,,****************          \n  .,,,,,,,,,,,,,/,,,,,,,**********             "
+
 #
 export NEWT_COLORS=''
 RPCUSER="${PROJECT_NAME}_user"
@@ -34,9 +36,9 @@ SSH_PORT=$(cat /etc/ssh/sshd_config | grep Port | awk '{print $2}')
 WALLET_LOCATION="${HOME}/.${PROJECT_NAME}"
 DAEMON_BINARY="${PROJECT_NAME}d"
 PROJECT_CLI="${PROJECT_NAME}-cli"
-PROJECT_LOGO="          *////////////*                       \n         ///////////////                       \n         *//////////////                       \n         ****//////////                        \n        ********///////                        \n        ***********///*                        \n       /**************////////*,               \n       *******************/////////,           \n       **********************/////////         \n       *************************///////*       \n      ,*************@@@@***%@@@%***//////      \n      *************/@@@&***@@@@/******////     \n      *********@@@@@@@@@@@@@@@@@@@*******//    \n     **********@@@@@@@@@@@@@@@@@@@*********,   \n     *************/@@@@***&@@@**************   \n     *************&@@@#***@@@@*************,   \n    ,**********@@@@@@@@@@@@@@@@@@&*********/   \n    ,,********/@@@@@@@@@@@@@@@@@@**********    \n    ,,,,,********#@@@/***@@@@*************/    \n   ,,,,,,,,*****@@@@***(@@@@************(     \n   ,,,,,,,,,,,**************************       \n   ,,,,,,,,,,,,,,,********************/        \n  .,,,,,,,,,,,,,,,,,,****************          \n  .,,,,,,,,,,,,,/,,,,,,,**********             "
 WT_BACKTITLE="$PROJECT_NAME Masternode Installer"
 WT_TITLE="Installing the $PROJECT_NAME Masternode..."
+DAEMON_PID="$(pidof $DAEMON_BINARY)"
 declare MN_ALIAS
 declare MN_PRIV_KEY
 declare COLLATERAL_OUTPUT_TXID
@@ -167,10 +169,18 @@ pre_checks() {
     exit 1
     fi
 
-    if [ -n "$(pidof $DAEMON_BINARY)" ]; then
-    msgbox "The $PROJECT_NAME daemon is already running."
-    # check for updates
-    exit 1
+    if [ -n $DAEMON_PID ]; then
+    msgbox "The $PROJECT_NAME daemon is already running.  Stopping it...."
+    WALLET_LOCATION="$(pwdx $DAEMON_PID | awk '{print $2}')"
+		if [ /etc/systemd/system/${DAEMON_BINARY}.service ]; then
+		systemctl stop $DAEMON_BINARY
+		else $DAEMON_CLI stop
+		fi
+	MN_CONF="$(cat ${WALLET_LOCATION}/masternode.conf)"
+	MN_ALIAS="$(echo $MN_CONF | awk '{print $1}')"
+	MN_PRIV_KEY="$(echo $MN_CONF | awk '{print $3}')"
+	COLLATERAL_OUTPUT_TXID="$(echo $MN_CONF | awk '{print $4}')"
+	COLLATERAL_OUTPUT_INDEX="$(echo $MN_CONF | awk '{print $5}')"
     fi
 }
 
