@@ -759,7 +759,11 @@ msgbox "${INSTALL_STEPS[bash_conf]}"
 LOCAL_WALLET_CONF="rpcuser=$RPCUSER\nrpcpassword=$RPCPASSWORD\nrpcallowip=127.0.0.1\nlisten=0\nserver=1\ndaemon=1\nlogtimestamps=1\nmaxconnections=256"
     text_to_copy $LOCAL_WALLET_CONF
 infobox "${INSTALL_STEPS[get_binaries]}"
+	CURRENT_VERSION=$($PROJECT_CLI --version | awk '{print $NF}' | awk -F "-" '{print $1}')
+    LATEST_VERSION=$(get_latest_release ${PROJECT_GITHUB_REPO})
+    if [ -n $DAEMON_PID ] || [ "$CURRENT_VERSION" != "$LATEST_VERSION" ]; then
     stfu download_binaries
+    fi
 infobox "${INSTALL_STEPS[vps_configs]}"
 SERVER_WALLET_CONF="rpcuser=${RPCUSER}\nrpcpassword=${RPCPASSWORD}\nrpcallowip=127.0.0.1\nlisten=1\nserver=1\ndaemon=1\nlogtimestamps=1\nmaxconnections=32\nmasternode=1\nexternalip=${PUBLIC_IP}\nbind=${PUBLIC_IP}:${P2P_PORT}\nmasternodeprivkey=${MN_PRIV_KEY}\ndatadir=${WALLET_LOCATION}"
     stfu wallet_configs
