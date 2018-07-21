@@ -50,7 +50,8 @@ declare -a BASE_PKGS=(\
     lsb-release \
     software-properties-common \
     unzip \
-    wget)
+    wget \
+    whiptail)
 declare -a PROJECT_PKGS=(\
     libboost-system-dev \
     libboost-filesystem-dev \
