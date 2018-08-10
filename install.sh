@@ -84,7 +84,9 @@ text_to_copy() {
     echo -e "$@"
     echo "# ===========Stop copy text BEFORE this line==========="
     echo
-    echo
+    echo "DO NOT USE CTRL+C TO COPY, IN LINUX THIS WILL CANCEL THE SCRIPT."
+    echo "INSTEAD USE THE EDIT MENU IN YOUR TERMINAL APPLICATION AND CHOOSE THE COPY ITEM"
+    echo "IN PUTTY THE ACT OF SELECTING TEXT AUTOMATICALLY COPIES IT"
     read -n 1 -s -r -p "Press any key to continue..."
     clear
 }
@@ -744,7 +746,7 @@ infobox "${INSTALL_STEPS[vps_configs]}"
 SERVER_WALLET_CONF="rpcuser=${RPCUSER}\nrpcpassword=${RPCPASSWORD}\nrpcallowip=127.0.0.1\nlisten=1\nserver=1\ndaemon=1\nlogtimestamps=1\nmaxconnections=32\nmasternode=1\nexternalip=${PUBLIC_IP}\nbind=${PUBLIC_IP}:${P2P_PORT}\nmasternodeprivkey=${MN_PRIV_KEY}\ndatadir=${WALLET_LOCATION}"
     stfu wallet_configs
 infobox "${INSTALL_STEPS[vps_systemd]}"
-DAEMON_SERVICE="[Unit]\nDescription=$PROJECT_NAME daemon\nAfter=network.target\n\n[Service]\nExecStart=/usr/local/bin/$DAEMON_BINARY --daemon --shrinkdebugfile --conf=$WALLET_LOCATION/$PROJECT_NAME.conf -pid=/run/$DAEMON_BINARY/$DAEMON_BINARY.pid\nExecStart=/usr/local/bin/$DAEMON_BINARY stop\nRuntimeDirectory=$DAEMON_BINARY\nUser=$LINUX_USER\nType=forking\nWorkingDirectory=$WALLET_LOCATION\nPIDFile=/run/$DAEMON_BINARY/$DAEMON_BINARY.pid\nRestart=on-failure\n\nPrivateTmp=true\nProtectSystem=full\nNoNewPrivileges=true\nPrivateDevices=true\nMemoryDenyWriteExecute=true\n\n[Install]\nWantedBy=multi-user.target"
+DAEMON_SERVICE="[Unit]\nDescription=$PROJECT_NAME daemon\nAfter=network.target\n\n[Service]\nExecStart=/usr/local/bin/$DAEMON_BINARY --daemon --shrinkdebugfile --conf=$WALLET_LOCATION/$PROJECT_NAME.conf -pid=/run/$DAEMON_BINARY/$DAEMON_BINARY.pid\nExecStop=/usr/local/bin/$DAEMON_BINARY stop\nRuntimeDirectory=$DAEMON_BINARY\nUser=$LINUX_USER\nType=forking\nWorkingDirectory=$WALLET_LOCATION\nPIDFile=/run/$DAEMON_BINARY/$DAEMON_BINARY.pid\nRestart=on-failure\n\nPrivateTmp=true\nProtectSystem=full\nNoNewPrivileges=true\nPrivateDevices=true\nMemoryDenyWriteExecute=true\n\n[Install]\nWantedBy=multi-user.target"
     stfu daemon_service
     stfu install_checkblocks
 msgbox "${INSTALL_STEPS[start_alias]/"MN_ALIAS"/"$MN_ALIAS"}"
