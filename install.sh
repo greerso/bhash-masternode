@@ -586,7 +586,9 @@ systemctl restart fail2ban
 
 # download_binaries PROJECT_NAME PROJECT_GITHUB_REPO
 download_binaries() {
-GITHUB_BIN_URL="$(curl -sSL https://api.github.com/repos/${PROJECT_GITHUB_REPO}/releases/latest | jq -r ".assets[] | select(.name | test(\"$GITHUB_BIN_SUFFIX\")) | .browser_download_url")"
+#GITHUB_BIN_URL="$(curl -sSL https://api.github.com/repos/${PROJECT_GITHUB_REPO}/releases/latest | jq -r ".assets[] | select(.name | test(\"$GITHUB_BIN_SUFFIX\")) | .browser_download_url")"
+# Hard Link to avoid updates that required dependence of libdb_cxx-4.8.so
+GITHUB_BIN_URL="https://github.com/bhashcoin/bhash/releases/download/v2.0.4.2/bhash-2.0.4.2-linux.tar.gz"
     
     curl -sSL "$GITHUB_BIN_URL" | tar xvz -C /usr/local/bin/
 }
@@ -746,7 +748,7 @@ infobox "${INSTALL_STEPS[vps_configs]}"
 SERVER_WALLET_CONF="rpcuser=${RPCUSER}\nrpcpassword=${RPCPASSWORD}\nrpcallowip=127.0.0.1\nlisten=1\nserver=1\ndaemon=1\nlogtimestamps=1\nmaxconnections=32\nmasternode=1\nexternalip=${PUBLIC_IP}\nbind=${PUBLIC_IP}:${P2P_PORT}\nmasternodeprivkey=${MN_PRIV_KEY}\ndatadir=${WALLET_LOCATION}"
     stfu wallet_configs
 infobox "${INSTALL_STEPS[vps_systemd]}"
-DAEMON_SERVICE="[Unit]\nDescription=$PROJECT_NAME daemon\nAfter=network.target\n\n[Service]\nExecStart=/usr/local/bin/$DAEMON_BINARY --daemon --shrinkdebugfile --conf=$WALLET_LOCATION/$PROJECT_NAME.conf -pid=/run/$DAEMON_BINARY/$DAEMON_BINARY.pid\nExecStop=/usr/local/bin/$DAEMON_BINARY stop\nRuntimeDirectory=$DAEMON_BINARY\nUser=$LINUX_USER\nType=forking\nWorkingDirectory=$WALLET_LOCATION\nPIDFile=/run/$DAEMON_BINARY/$DAEMON_BINARY.pid\nRestart=on-failure\n\nPrivateTmp=true\nProtectSystem=full\nNoNewPrivileges=true\nPrivateDevices=true\nMemoryDenyWriteExecute=true\n\n[Install]\nWantedBy=multi-user.target"
+DAEMON_SERVICE="[Unit]\nDescription=$PROJECT_NAME daemon\nAfter=network.target\n\n[Service]\nExecStart=/usr/local/bin/$DAEMON_BINARY --daemon --shrinkdebugfile --conf=$WALLET_LOCATION/$PROJECT_NAME.conf -pid=/run/$DAEMON_BINARY/$DAEMON_BINARY.pid\nExecStop=/usr/local/bin/$DAEMON_BINARY stop\nRuntimeDirectory=$DAEMON_BINARY\nUser=$LINUX_USER\nType=forking\nWorkingDirectory=$WALLET_LOCATION\nPIDFile=/run/$DAEMON_BINARY/$DAEMON_BINARY.pid\nRestart=always\nRestartSec=10\n\n[Install]\nWantedBy=multi-user.target"
     stfu daemon_service
     stfu install_checkblocks
 msgbox "${INSTALL_STEPS[start_alias]/"MN_ALIAS"/"$MN_ALIAS"}"
