@@ -740,7 +740,7 @@ msgbox "${INSTALL_STEPS[mn_conf]}"
     MASTERNODE_CONF="$MN_ALIAS $PUBLIC_IP:$P2P_PORT $MN_PRIV_KEY $COLLATERAL_OUTPUT_TXID $COLLATERAL_OUTPUT_INDEX"
     text_to_copy $MASTERNODE_CONF
 msgbox "${INSTALL_STEPS[bash_conf]}"
-LOCAL_WALLET_CONF="rpcuser=$RPCUSER\nrpcpassword=$RPCPASSWORD\nrpcallowip=127.0.0.1\nlisten=0\nserver=1\ndaemon=1\nlogtimestamps=1\nmaxconnections=256\naddnode=104.131.179.164:17652\naddnode=104.236.7.148:17652\naddnode=149.28.37.171:17652\naddnode=159.203.43.80:17652\naddnode=159.65.71.96:17652\naddnode=159.89.112.43:17652\naddnode=165.227.34.68:17652\naddnode=167.99.178.161:17652\naddnode=176.223.128.17:17652\naddnode=176.74.216.107:17652\naddnode=188.166.44.108:17652\naddnode=45.32.216.236:17652"
+LOCAL_WALLET_CONF="addnode=104.131.179.164:17652\naddnode=104.236.7.148:17652\naddnode=149.28.37.171:17652\naddnode=159.203.43.80:17652\naddnode=159.65.71.96:17652\naddnode=159.89.112.43:17652\naddnode=165.227.34.68:17652\naddnode=167.99.178.161:17652\naddnode=176.223.128.17:17652\naddnode=176.74.216.107:17652\naddnode=188.166.44.108:17652\naddnode=45.32.216.236:17652"
     text_to_copy $LOCAL_WALLET_CONF
 infobox "${INSTALL_STEPS[get_binaries]}"
     stfu download_binaries
