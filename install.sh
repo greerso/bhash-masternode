@@ -675,17 +675,17 @@ Masternode install
 declare -A INSTALL_STEPS=(
     [installing]="Installing packages required for setup...\n(this could take a few minutes)"
     [install_dependencies]="This script will walk you through the following:\n\n${INSTALL_OPTIONS}\n\nYou will need:\n- A QT wallet with at least $PROJECT_STAKE coins and to know how to copy/paste."
-    [create_key]="Start the qt wallet.\n - Go to Settings->Debug console and paste the following command:\n\ncreatemasternodekey\n\nThe result will look something like this \"7b3p59Fr2GCIvR6aaTTerMNfNkFetJZVLD3hzSCYGKsZpXFjwuZ\".  Enter it here"
+    [create_key]="Start the qt wallet.\n - Go to Tools->Debug console and paste the following command:\n\ncreatemasternodekey\n\nThe result will look something like this \"7b3p59Fr2GCIvR6aaTTerMNfNkFetJZVLD3hzSCYGKsZpXFjwuZ\".  Enter it here"
     [choose_alias]="Choose an alias for your masternode, for example MN1, then enter it here"
     [stake_address]="While still in the Debug console type the following command to get a public address to send the stake to:\n\ngetaccountaddress MN_ALIAS\n\nThe result will look similar to this \"mA7fXSTe23RNoD83Esx6or4uYLxLqunDm5\".  Send exactly $PROJECT_STAKE HASH to that address making sure that any tx fee is covered."
     [mn_outputs]="Back in the Debug console Execute the command:\n\nmasternode outputs\n\nThis will output TX and output pairs of numbers, for example:\n{\n\"a9b31238d062ccb5f4b1eb6c3041d369cc014f5e6df38d2d303d791acd4302f2\": \"0\"\n}\nPaste just the first, long, number without any punctuation, here and the second number in the next screen."
     [mn_outputs_txin]="Enter the second, single digit number from the previous step (usually 0 or 1) here."
     [mn_conf]="On the QT wallet, open the masternode.conf file via the menu Tools->Open Masternode Configuration File.\n\nPaste the string that will appear on the next screen then save and close the file."
-    [bash_conf]="On the QT wallet, open the bash.conf file via the menu Tools->Open Wallet Configuration File.\n\nPaste the lines that will appear on the next screen then save and close the file"
+    [bhash_conf]="On the QT wallet, open the bhash.conf file via the menu Tools->Open Wallet Configuration File.\n\nPaste the lines that will appear on the next screen then save and close the file"
     [get_binaries]="Installing binaries to /usr/local/bin..."
     [vps_configs]="Creating configs in $WALLET_LOCATION..."
     [vps_systemd]="Creating and installing the $PROJECT_NAME systemd service..."
-    [start_alias]="Restart the wallet.  You should see your Masternode listed in the Masternodes tab.\n\nGo to Settings->Debug console and paste the following command:\n\nstartmasternode alias false MN_ALIAS\n\nto start your Masternode.\n\nIt may take a while for your masternode to fully propagate"
+    [start_alias]="Restart the wallet.  You should see your Masternode listed in the Masternodes tab.\n\nGo to Tools->Debug console and paste the following command:\n\nstartmasternode alias false MN_ALIAS\n\nto start your Masternode.\n\nIt may take a while for your masternode to fully propagate"
 )
 # ------------------------------------------------------------------------------
 
@@ -739,7 +739,7 @@ done
 msgbox "${INSTALL_STEPS[mn_conf]}"
     MASTERNODE_CONF="$MN_ALIAS $PUBLIC_IP:$P2P_PORT $MN_PRIV_KEY $COLLATERAL_OUTPUT_TXID $COLLATERAL_OUTPUT_INDEX"
     text_to_copy $MASTERNODE_CONF
-msgbox "${INSTALL_STEPS[bash_conf]}"
+msgbox "${INSTALL_STEPS[bhash_conf]}"
 LOCAL_WALLET_CONF="addnode=104.131.179.164:17652\naddnode=104.236.7.148:17652\naddnode=149.28.37.171:17652\naddnode=159.203.43.80:17652\naddnode=159.65.71.96:17652\naddnode=159.89.112.43:17652\naddnode=165.227.34.68:17652\naddnode=167.99.178.161:17652\naddnode=176.223.128.17:17652\naddnode=176.74.216.107:17652\naddnode=188.166.44.108:17652\naddnode=45.32.216.236:17652"
     text_to_copy $LOCAL_WALLET_CONF
 infobox "${INSTALL_STEPS[get_binaries]}"
