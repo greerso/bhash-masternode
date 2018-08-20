@@ -156,8 +156,8 @@ $WT_SIZE
 
 pre_checks() {
     UBUNTU_VER=$(lsb_release -rs)
-    if [[ $UBUNTU_VER != 16.04 ]]; then
-    msgbox "Ubuntu 16.04 is required, you have $UBUNTU_VER.  Exiting..."
+    if [[ $UBUNTU_VER >= 16.04 ]]; then
+    msgbox "At least Ubuntu 16.04 is required, you have $UBUNTU_VER.  Exiting..."
     exit 1
     fi
 
