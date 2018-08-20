@@ -561,25 +561,6 @@ fi
 # restart the service
 sysctl -p.
 
-# Prevent IP spoofing
-if grep -q order /etc/sysctl.conf; then
-sed -ri "s|(^(.{0,2})order)( *)?(.*)|order bind,hosts|1" /etc/host.conf
-else
-echo "order bind,hosts" >> /etc/host.conf
-fi
-
-if grep -q multi /etc/sysctl.conf; then
-sed -ri "s|(^(.{0,2})multi)( *)?(.*)|#multi on|1" /etc/host.conf
-else
-echo "#multi on" >> /etc/host.conf
-fi
-
-if grep -q nospoof /etc/sysctl.conf; then
-sed -ri "s|(^(.{0,2})nospoof)( *)?(.*)|nospoof on|1" /etc/host.conf
-else
-echo "nospoof on" >> /etc/host.conf
-fi
-
 systemctl restart fail2ban
 
 }
